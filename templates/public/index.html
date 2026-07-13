@@ -1,0 +1,52 @@
+{% extends "public/base.html" %}
+
+{% block title %}Home - SLSU Catanauan Extension | Request Documents Online{% endblock %}
+
+{% block content %}
+<section class="hero hero-home" aria-labelledby="hero-heading" style="--hero-bg: url('{{ url_for('static', filename='images/building.jpg') }}');">
+  <div class="hero-left">
+    <div class="hero-content">
+      <p style="color: #6b7a76; font-weight:600; margin-bottom:0.75rem;">SLSU Catanauan Extension</p>
+      <h1 id="hero-heading">Request Your Documents Online</h1>
+      <p class="hero-subtitle">Fast, secure and convenient academic document processing — certificates, transcripts, and other official records.</p>
+
+      <div style="display:flex; gap:1rem; align-items:center;">
+        <a href="{{ url_for('login') }}" class="cta-button" role="button">Get Started</a>
+        <a href="{{ url_for('about') }}" style="color:#285240; font-weight:600; text-decoration:none;">Learn more</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="how-it-works">
+  <h2 class="how-title">HOW IT WORKS</h2>
+  <div class="how-steps">
+    <div class="how-step">
+      <div class="how-icon"><span class="material-icons">person_add</span></div>
+      <div class="how-label"><strong>Step 1</strong><br>Login or Create Account</div>
+      <div class="how-desc">Sign in to your account or register if you do not have one yet to access the document request system.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-icon"><span class="material-icons">description</span></div>
+      <div class="how-label"><strong>Step 2</strong><br>Select Documents to Request</div>
+      <div class="how-desc">Choose from the list of available documents (Transcript of Records, Certificates, and others) that you want to request.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-icon"><span class="material-icons">hourglass_empty</span></div>
+      <div class="how-label"><strong>Step 3</strong><br>Wait for Approval</div>
+      <div class="how-desc">Your request will be reviewed and processed by the admin.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-icon"><span class="material-icons">download</span></div>
+      <div class="how-label"><strong>Step 4</strong><br>Download Claim Slip</div>
+      <div class="how-desc">Once approved, check your email and download your claim slip.</div>
+    </div>
+    <div class="how-step">
+      <div class="how-icon"><span class="material-icons">receipt_long</span></div>
+      <div class="how-label"><strong>Step 5</strong><br>Claim Your Document</div>
+      <div class="how-desc">Present your claim slip at the school and receive your requested document.</div>
+    </div>
+  </div>
+  <div class="how-note"><span class="how-note-strong">Note:</span> You must create an account before requesting documents.</div>
+</section>
+{% endblock %}

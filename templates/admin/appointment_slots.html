@@ -1,0 +1,190 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Appointment Slots - SLSU{% endblock %}
+
+{% block admin_content %}
+<section class="dashboard-wrap appointment-page">
+    <div class="appointment-header">
+        <h2>Appointment Slot</h2>
+        <div class="appointment-nav-links">
+            <a href="{{ url_for('admin_appointment_slots', year=prev_year, month=prev_month) }}" class="mini-nav-btn">&larr; Prev</a>
+            <span>{{ selected_month_name }} {{ selected_year }}</span>
+            <a href="{{ url_for('admin_appointment_slots', year=next_year, month=next_month) }}" class="mini-nav-btn">Next &rarr;</a>
+        </div>
+    </div>
+
+    <div class="appointment-layout">
+        <article class="appointment-calendar-card">
+            <table class="appointment-calendar">
+                <thead>
+                    <tr>
+                        <th>Sunday</th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                        <th>Saturday</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in month_weeks %}
+                    <tr>
+                        {% for day in week %}
+                            {% if day == 0 %}
+                            <td class="day-empty"></td>
+                            {% else %}
+                            {% set date_key = '%04d-%02d-%02d'|format(selected_year, selected_month, day) %}
+                            {% set slot = slot_map.get(date_key) %}
+                            <td
+                                class="day-cell {% if slot and slot.available_slots == 0 and slot.total_slots > 0 %}is-full{% endif %} {% if date_key < today_iso %}is-past{% endif %}"
+                                data-date="{{ date_key }}"
+                                data-is-past="{{ '1' if date_key < today_iso else '0' }}"
+                                data-total-slots="{{ slot.total_slots if slot else 0 }}"
+                                data-used-slots="{{ slot.used_slots if slot else 0 }}"
+                                data-available-slots="{{ slot.available_slots if slot else 0 }}"
+                            >
+                                <div class="day-number">{{ day }}</div>
+                                {% if slot %}
+                                <div class="day-slot-meta">
+                                    <small>Total: {{ slot.total_slots }}</small>
+                                    <small>Used: {{ slot.used_slots }}</small>
+                                    <small>Avail: {{ slot.available_slots }}</small>
+                                </div>
+                                {% else %}
+                                <div class="day-slot-meta no-slot"><small>No slot set</small></div>
+                                {% endif %}
+                            </td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </article>
+    </div>
+
+    <div class="admin-modal-backdrop" id="slotModal" aria-hidden="true">
+        <div class="admin-modal-panel appointment-modal-panel" role="dialog" aria-modal="true" aria-labelledby="slotModalTitle">
+            <div class="admin-modal-header">
+                <h3 id="slotModalTitle"><i class="fa-regular fa-calendar-plus"></i> Slot Configuration</h3>
+                <button class="admin-modal-close" type="button" id="slotModalClose" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form method="post" action="{{ url_for('admin_appointment_slots', year=selected_year, month=selected_month) }}" class="doc-type-form">
+                <label for="slot_date">Date</label>
+                <input id="slot_date" name="slot_date" type="date" class="admin-input{% if form.errors.get('slot_date') %} is-invalid{% endif %}" value="{{ form.slot_date.data or '' }}" readonly required>
+                {% if form.errors.get('slot_date') %}<p class="form-error">{{ form.errors.get('slot_date')[0] }}</p>{% endif %}
+
+                <div class="appointment-slot-stats">
+                    <p><strong>Used Slots:</strong> <span id="slotUsedLabel">0</span></p>
+                    <p><strong>Available Slots:</strong> <span id="slotAvailLabel">0</span></p>
+                </div>
+
+                <label for="total_slots">Daily Slots</label>
+                <input id="total_slots" name="total_slots" type="number" min="0" max="999" class="admin-input{% if form.errors.get('total_slots') %} is-invalid{% endif %}" value="{{ form.total_slots.data if form.total_slots.data is not none else 0 }}" required>
+                {% if form.errors.get('total_slots') %}<p class="form-error">{{ form.errors.get('total_slots')[0] }}</p>{% endif %}
+
+                <p class="slot-help">Click a date, adjust slots, then save.</p>
+
+                <div class="doc-form-actions">
+                    <button class="doc-btn doc-btn-secondary" type="submit">Save Slot</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const dayCells = document.querySelectorAll('.day-cell[data-date]');
+    const slotModal = document.getElementById('slotModal');
+    const slotModalClose = document.getElementById('slotModalClose');
+    const slotDateInput = document.getElementById('slot_date');
+    const totalSlotsInput = document.getElementById('total_slots');
+    const slotUsedLabel = document.getElementById('slotUsedLabel');
+    const slotAvailLabel = document.getElementById('slotAvailLabel');
+
+    function openSlotModal(dateVal, totalVal, usedVal, availableVal) {
+        if (slotDateInput) {
+            slotDateInput.value = dateVal;
+        }
+        if (totalSlotsInput) {
+            totalSlotsInput.value = totalVal;
+        }
+        if (slotUsedLabel) {
+            slotUsedLabel.textContent = usedVal;
+        }
+        if (slotAvailLabel) {
+            slotAvailLabel.textContent = availableVal;
+        }
+        if (slotModal) {
+            slotModal.classList.add('is-open');
+            slotModal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        }
+    }
+
+    function closeSlotModal() {
+        if (slotModal) {
+            slotModal.classList.remove('is-open');
+            slotModal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        }
+    }
+
+    dayCells.forEach((cell) => {
+        cell.addEventListener('click', () => {
+            if (cell.getAttribute('data-is-past') === '1') {
+                return;
+            }
+
+            const dateVal = cell.getAttribute('data-date') || '';
+            const totalVal = cell.getAttribute('data-total-slots') || '0';
+            const usedVal = cell.getAttribute('data-used-slots') || '0';
+            const availableVal = cell.getAttribute('data-available-slots') || '0';
+
+            dayCells.forEach((c) => c.classList.remove('is-selected'));
+            cell.classList.add('is-selected');
+
+            openSlotModal(dateVal, totalVal, usedVal, availableVal);
+        });
+    });
+
+    if (slotModalClose) {
+        slotModalClose.addEventListener('click', closeSlotModal);
+    }
+
+    if (slotModal) {
+        slotModal.addEventListener('click', (event) => {
+            if (event.target === slotModal) {
+                closeSlotModal();
+            }
+        });
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            closeSlotModal();
+        }
+    });
+
+    {% if form.errors and form.slot_date.data %}
+    (function () {
+        const submittedDate = {{ form.slot_date.data|tojson }};
+        const activeCell = document.querySelector('.day-cell[data-date="' + submittedDate + '"]');
+        if (activeCell) {
+            dayCells.forEach((c) => c.classList.remove('is-selected'));
+            activeCell.classList.add('is-selected');
+            openSlotModal(
+                submittedDate,
+                activeCell.getAttribute('data-total-slots') || '0',
+                activeCell.getAttribute('data-used-slots') || '0',
+                activeCell.getAttribute('data-available-slots') || '0'
+            );
+        }
+    })();
+    {% endif %}
+</script>
+{% endblock %}

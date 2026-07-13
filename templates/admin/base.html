@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin - SLSU{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="admin-shell">
+        <aside class="admin-sidebar">
+            <div class="sidebar-top">
+                <div class="brand">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SLSU Logo">
+                    <h1>SLSU Catanauan Extension</h1>
+                </div>
+                <button class="admin-menu-toggle" id="adminMenuToggle" aria-label="Toggle admin menu" aria-expanded="false" aria-controls="adminNav">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+
+            <nav class="admin-nav" id="adminNav">
+                <a class="{% if request.endpoint == 'admin_dashboard' %}active{% endif %}" href="{{ url_for('admin_dashboard') }}"><i class="fa-solid fa-house"></i> Dashboard</a>
+                <a class="{% if request.endpoint == 'admin_requests' %}active{% endif %}" href="{{ url_for('admin_requests') }}"><i class="fa-solid fa-list-check"></i> Request</a>
+                <a class="{% if request.endpoint == 'admin_document_types' %}active{% endif %}" href="{{ url_for('admin_document_types') }}"><i class="fa-solid fa-file-circle-plus"></i> Document Types</a>
+                <a class="{% if request.endpoint == 'admin_archive' %}active{% endif %}" href="{{ url_for('admin_archive') }}"><i class="fa-solid fa-box-archive"></i> Archived</a>
+                <a class="{% if request.endpoint == 'admin_appointment_slots' %}active{% endif %}" href="{{ url_for('admin_appointment_slots') }}"><i class="fa-solid fa-calendar-check"></i> Appointment Slot</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <div class="topbar-spacer"></div>
+                <div class="topbar-actions">
+                    <div class="admin-notif-wrap" id="adminNotifWrap">
+                        <button class="admin-notif-bell" id="adminNotifBell" type="button" aria-label="Notifications" aria-expanded="false" aria-controls="adminNotifPanel">
+                            <i class="fa-solid fa-bell"></i>
+                            <span class="admin-notif-badge" id="adminNotifBadge" hidden>0</span>
+                        </button>
+                        <div class="admin-notif-panel" id="adminNotifPanel" hidden>
+                            <div class="admin-notif-head">
+                                <h4>Notifications</h4>
+                                <button class="admin-notif-read-all" id="adminNotifReadAll" type="button">Mark all read</button>
+                            </div>
+                            <div class="admin-notif-tabs" role="tablist" aria-label="Notification tabs">
+                                <button class="admin-notif-tab is-active" id="adminNotifTabUnread" type="button" data-tab="unread" role="tab" aria-selected="true">Unread</button>
+                                <button class="admin-notif-tab" id="adminNotifTabRead" type="button" data-tab="read" role="tab" aria-selected="false">Read</button>
+                            </div>
+                            <div class="admin-notif-list" id="adminNotifList"></div>
+                            <p class="admin-notif-empty" id="adminNotifEmpty" hidden>No notifications found.</p>
+                        </div>
+                    </div>
+                    <span class="role-chip">Admin</span>
+                    <a class="top-link js-logout-link" href="{{ url_for('logout') }}">Logout</a>
+                </div>
+            </header>
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        const adminMenuToggle = document.getElementById('adminMenuToggle');
+        const adminNav = document.getElementById('adminNav');
+        const logoutLinks = document.querySelectorAll('.js-logout-link');
+
+        if (adminMenuToggle && adminNav) {
+            adminMenuToggle.addEventListener('click', () => {
+                const isOpen = adminNav.classList.toggle('is-open');
+                adminMenuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 980) {
+                    adminNav.classList.remove('is-open');
+                    adminMenuToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        logoutLinks.forEach((link) => {
+            link.addEventListener('click', (event) => {
+                const confirmed = window.confirm('Are you sure you want to logout?');
+                if (!confirmed) {
+                    event.preventDefault();
+                }
+            });
+        });
+
+        const notifWrap = document.getElementById('adminNotifWrap');
+        const notifBell = document.getElementById('adminNotifBell');
+        const notifBadge = document.getElementById('adminNotifBadge');
+        const notifPanel = document.getElementById('adminNotifPanel');
+        const notifList = document.getElementById('adminNotifList');
+        const notifEmpty = document.getElementById('adminNotifEmpty');
+        const notifReadAll = document.getElementById('adminNotifReadAll');
+        const notifTabs = document.querySelectorAll('.admin-notif-tab');
+
+        if (notifWrap && notifBell && notifBadge && notifPanel && notifList && notifEmpty && notifReadAll) {
+            const adminRequestsUrl = '{{ url_for("admin_requests") }}';
+            const COUNT_POLL_MS = 30000;
+            const PANEL_POLL_MS = 12000;
+            let activeTab = 'unread';
+            let countTimer = null;
+            let panelTimer = null;
+            let countInFlight = false;
+            let panelInFlight = false;
+
+            const formatDateTime = (value) => {
+                if (!value) return '';
+                const parsed = new Date(String(value).replace(' ', 'T'));
+                if (Number.isNaN(parsed.getTime())) return String(value);
+                return parsed.toLocaleString();
+            };
+
+            const setBadge = (value) => {
+                const count = Math.max(0, Number(value || 0));
+                notifBadge.textContent = String(count);
+                notifBadge.hidden = count <= 0;
+            };
+
+            const clearPanelPoll = () => {
+                if (panelTimer) {
+                    window.clearTimeout(panelTimer);
+                    panelTimer = null;
+                }
+            };
+
+            const scheduleCountPoll = (delayMs) => {
+                if (countTimer) {
+                    window.clearTimeout(countTimer);
+                }
+                const delay = typeof delayMs === 'number' ? delayMs : (COUNT_POLL_MS + Math.floor(Math.random() * 4000));
+                countTimer = window.setTimeout(fetchUnreadCount, delay);
+            };
+
+            const schedulePanelPoll = () => {
+                clearPanelPoll();
+                if (notifPanel.hidden) return;
+                panelTimer = window.setTimeout(() => {
+                    fetchNotificationList(activeTab);
+                }, PANEL_POLL_MS + Math.floor(Math.random() * 2000));
+            };
+
+            const fetchUnreadCount = async () => {
+                if (countInFlight) {
+                    scheduleCountPoll();
+                    return;
+                }
+                countInFlight = true;
+                try {
+                    const response = await fetch('{{ url_for("notification_count_api") }}', {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                    });
+                    if (!response.ok) throw new Error('Count request failed');
+                    const payload = await response.json();
+                    setBadge(payload.unread_count || 0);
+                } catch (_error) {
+                    // Silent failure keeps UI responsive during brief network issues.
+                } finally {
+                    countInFlight = false;
+                    scheduleCountPoll();
+                }
+            };
+
+            const renderNotificationItems = (items) => {
+                notifList.innerHTML = '';
+                if (!items.length) {
+                    notifEmpty.hidden = false;
+                    return;
+                }
+                notifEmpty.hidden = true;
+
+                items.forEach((item) => {
+                    const card = document.createElement('article');
+                    card.className = 'admin-notif-item is-clickable';
+                    card.setAttribute('role', 'button');
+                    card.setAttribute('tabindex', '0');
+
+                    let targetUrl = adminRequestsUrl;
+                    if (item.reference_code) {
+                        targetUrl = adminRequestsUrl + '?status=all&q=' + encodeURIComponent(item.reference_code);
+                    }
+
+                    const navigateToTarget = () => {
+                        window.location.href = targetUrl;
+                    };
+
+                    card.addEventListener('click', navigateToTarget);
+                    card.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            navigateToTarget();
+                        }
+                    });
+
+                    const refLine = document.createElement('p');
+                    refLine.className = 'admin-notif-ref';
+                    refLine.textContent = 'Ref No: ' + (item.reference_code || 'N/A');
+                    card.appendChild(refLine);
+
+                    if (item.student_full_name) {
+                        const studentLine = document.createElement('p');
+                        studentLine.className = 'admin-notif-student';
+                        studentLine.textContent = item.student_full_name;
+                        card.appendChild(studentLine);
+                    }
+
+                    const msgLine = document.createElement('p');
+                    msgLine.className = 'admin-notif-message';
+                    msgLine.textContent = item.message || '';
+                    card.appendChild(msgLine);
+
+                    const metaRow = document.createElement('div');
+                    metaRow.className = 'admin-notif-meta-row';
+
+                    const dateLine = document.createElement('p');
+                    dateLine.className = 'admin-notif-meta';
+                    dateLine.textContent = formatDateTime(item.created_at);
+                    metaRow.appendChild(dateLine);
+
+                    if (activeTab === 'unread') {
+                        const markBtn = document.createElement('button');
+                        markBtn.type = 'button';
+                        markBtn.className = 'admin-notif-mark-read';
+                        markBtn.textContent = 'Mark read';
+                            markBtn.addEventListener('click', async (event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            try {
+                                const response = await fetch('/api/notifications/' + item.id + '/read', {
+                                    method: 'POST',
+                                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                                    credentials: 'same-origin',
+                                });
+                                if (!response.ok) throw new Error('Mark read failed');
+                                await fetchUnreadCount();
+                                await fetchNotificationList(activeTab);
+                            } catch (_error) {
+                                // Keep UI stable on transient errors.
+                            }
+                        });
+                        metaRow.appendChild(markBtn);
+                    }
+
+                    card.appendChild(metaRow);
+                    notifList.appendChild(card);
+                });
+            };
+
+            const fetchNotificationList = async (tab) => {
+                if (panelInFlight) {
+                    schedulePanelPoll();
+                    return;
+                }
+                panelInFlight = true;
+                try {
+                    const response = await fetch('{{ url_for("notification_list_api") }}?tab=' + encodeURIComponent(tab) + '&limit=20', {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                    });
+                    if (!response.ok) throw new Error('List request failed');
+                    const payload = await response.json();
+                    const items = Array.isArray(payload.items) ? payload.items : [];
+                    renderNotificationItems(items);
+                } catch (_error) {
+                    notifList.innerHTML = '';
+                    notifEmpty.hidden = false;
+                    notifEmpty.textContent = 'Unable to load notifications right now.';
+                } finally {
+                    panelInFlight = false;
+                    schedulePanelPoll();
+                }
+            };
+
+            const openPanel = () => {
+                notifPanel.hidden = false;
+                notifBell.setAttribute('aria-expanded', 'true');
+                fetchNotificationList(activeTab);
+            };
+
+            const closePanel = () => {
+                notifPanel.hidden = true;
+                notifBell.setAttribute('aria-expanded', 'false');
+                clearPanelPoll();
+            };
+
+            notifBell.addEventListener('click', () => {
+                if (notifPanel.hidden) {
+                    openPanel();
+                } else {
+                    closePanel();
+                }
+            });
+
+            notifTabs.forEach((tabButton) => {
+                tabButton.addEventListener('click', () => {
+                    const nextTab = tabButton.getAttribute('data-tab') || 'unread';
+                    activeTab = nextTab === 'read' ? 'read' : 'unread';
+                    notifTabs.forEach((btn) => {
+                        const selected = btn === tabButton;
+                        btn.classList.toggle('is-active', selected);
+                        btn.setAttribute('aria-selected', selected ? 'true' : 'false');
+                    });
+                    notifReadAll.hidden = activeTab !== 'unread';
+                    fetchNotificationList(activeTab);
+                });
+            });
+
+            notifReadAll.addEventListener('click', async () => {
+                try {
+                    const response = await fetch('{{ url_for("notification_mark_all_read_api") }}', {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                    });
+                    if (!response.ok) throw new Error('Read all failed');
+                    await fetchUnreadCount();
+                    await fetchNotificationList(activeTab);
+                } catch (_error) {
+                    // Keep UI stable on transient errors.
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!notifPanel.hidden && !notifWrap.contains(event.target)) {
+                    closePanel();
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && !notifPanel.hidden) {
+                    closePanel();
+                }
+            });
+
+            fetchUnreadCount();
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

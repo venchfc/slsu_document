@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Records Request Form Sample</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/request_form_sample.css') }}">
+</head>
+<body>
+    <div class="sample-wrap">
+        <section class="form-page">
+            <header class="form-head">
+                <div class="form-head-left">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SLSU Seal" class="form-seal">
+                    <div class="form-head-text">
+                        <p class="line-1">Republic of the Philippines</p>
+                        <p class="line-2">Southern Luzon State University</p>
+                        <p class="line-3">Office of the University Registrar</p>
+                        <p class="line-4">Quezon Avenue Brgy. Kulapi Lucban, Quezon</p>
+                    </div>
+                </div>
+                <div class="form-title">Records<br>Request</div>
+            </header>
+
+            <div class="rule-zig"></div>
+
+            <div class="intro">
+                <p class="intro-head">The University Registrar:</p>
+                <p class="intro-sub">I have the honor to request for:</p>
+            </div>
+
+            <section class="request-top">
+                <div class="request-col">
+                    <p class="request-col-head"><span class="check"></span> Certification</p>
+                    <p class="item-line">Graduation</p>
+                    <p class="item-line">Enrollment</p>
+                    <p class="item-line">CAV</p>
+                    <p class="item-line">Weighted Ave.</p>
+                    <p class="item-line">RLE</p>
+                    <p class="item-line">CAR</p>
+                    <p class="item-line">Units Earned</p>
+                    <p class="item-line">VAR</p>
+                    <p class="item-line">PD907</p>
+                    <p class="item-line">Evaluation</p>
+                </div>
+                <div class="request-col">
+                    <p class="request-col-head"><span class="check"></span> Credentials/Records</p>
+                    <p class="item-line">TOR</p>
+                    <p class="form-foot-note" style="margin: 2px 0 6px 24px;">
+                        TOR: first 2 pages are covered by the base fee. Add PHP 60.00 for each succeeding page.
+                    </p>
+                    <p class="item-line">Diploma</p>
+                    <p class="item-line">Copy of Grades</p>
+                    <p class="item-line">Form 137</p>
+                    <p class="item-line">Transfer Credentials</p>
+                </div>
+                <div class="request-col">
+                    <p class="date-line">Date: ____________________</p>
+                    <p class="request-col-head" style="margin-top:10px;"><span class="check"></span> Authentication</p>
+                    <p class="item-line">TOR</p>
+                    <p class="form-foot-note" style="margin: 2px 0 6px 24px;">
+                        TOR: first 2 pages are covered by the base fee. Add PHP 60.00 for each succeeding page.
+                    </p>
+                    <p class="item-line">Diploma</p>
+                    <p class="item-line">Registration Form</p>
+                    <p class="item-line">CAV</p>
+                </div>
+            </section>
+
+            <p class="fill-head">Fill in the necessary information: (Please print legibly)</p>
+
+            <section class="grid-two">
+                <div>
+                    <div class="field-row"><span>Purpose of Request:</span><span class="line"></span></div>
+                    <div class="field-row"><span>Student ID No:</span><span class="line"></span></div>
+                </div>
+                <div>
+                    <div class="field-row"><span><span class="check" style="width:14px;height:14px;"></span> Others (Specify):</span><span class="line"></span></div>
+                    <div class="field-row"><span>For TC/HD only: (Complete School Name and Address) Copy for:</span><span class="line"></span></div>
+                </div>
+            </section>
+
+            <p class="name-note">Student Name: (Name used while studying in this University)</p>
+            <div class="name-grid">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+            <div class="name-labels">
+                <div>Last Name</div>
+                <div>First Name</div>
+                <div>Middle Name</div>
+            </div>
+
+            <section class="edu-grid">
+                <div>
+                    <div class="field-row"><span>Program/Course:</span><span class="line"></span></div>
+                    <div class="field-row"><span>Major:</span><span class="line"></span></div>
+                    <div class="field-row"><span>Date of Graduation:</span><span class="line"></span></div>
+                    <div class="field-row"><span>Home Address:</span><span class="line"></span></div>
+                </div>
+                <div>
+                    <div class="degree-row">
+                        <span>Degree:</span>
+                        <span><span class="check"></span> HS</span>
+                        <span><span class="check"></span> Bachelor</span>
+                        <span><span class="check"></span> Masteral</span>
+                        <span><span class="check"></span> Doctoral</span>
+                    </div>
+                    <div class="degree-row">
+                        <span>For undergrad only:</span>
+                        <span><span class="check"></span> Shifter:</span>
+                        <span class="line" style="flex:1;"></span>
+                    </div>
+                    <div class="degree-row">
+                        <span>Inclusive Date of Attendance:</span>
+                        <span class="line" style="flex:1;"></span>
+                    </div>
+                    <div class="degree-row" style="display:block;">
+                        <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:4px;">
+                            <span>Contact No:</span>
+                        </div>
+                        <div class="phone-grid">
+                            <div class="phone-boxes"><span></span><span></span><span></span><span></span></div>
+                            <span>-</span>
+                            <div class="phone-boxes"><span></span><span></span><span></span><span></span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bottom-grid">
+                <div>
+                    <div class="privacy-box">
+                        <strong>DATA PRIVACY ACT DISCLAIMER</strong><br>
+                        In compliance with Republic Act 10173 (Data Privacy Act of 2012), the information collected in this form shall be used solely for the processing, verification, and release of student records. All personal data will be handled with strict confidentiality and will not be shared with any third party without the student's written consent, except when required by law or authorized by competent authorities. By accomplishing and submitting this form, the student affirms that the information provided is true and voluntarily given for the purpose stated above.
+                    </div>
+                    <p class="form-foot-note">AA-REG-2.01F1, REV.3</p>
+                </div>
+                <div class="sign-grid">
+                    <div class="sign-row"><span>Signature:</span><span class="line"></span></div>
+                    <div class="sign-row"><span>Printed Name of Requestor:</span><span class="line"></span></div>
+
+                    <p class="reg-title">(To be filled up by Registrar's Authorized Person)</p>
+
+                    <div class="reg-grid">
+                        <div class="reg-box">
+                            <div class="row"><div class="label">Amount Paid:</div><div></div></div>
+                            <div class="row"><div class="label">OR No:</div><div></div></div>
+                            <div class="row"><div class="label">Date:</div><div></div></div>
+                        </div>
+                        <div class="reg-box">
+                            <div class="row"><div class="label">Received By:</div><div></div></div>
+                            <div class="row"><div class="label">Date Received:</div><div></div></div>
+                            <div class="row"><div class="label">Claim Date:</div><div></div></div>
+                        </div>
+                    </div>
+
+                    <div class="reg-foot">
+                        <span>Record(s) Received By:</span><span class="line"></span>
+                        <span>Date Claimed:</span><span class="line"></span>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </div>
+</body>
+</html>

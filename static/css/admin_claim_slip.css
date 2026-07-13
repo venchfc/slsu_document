@@ -1,0 +1,539 @@
+.claim-slip-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.9rem;
+}
+
+.claim-slip-toolbar h2 {
+    margin: 0;
+    color: #0a4336;
+}
+
+.claim-slip-toolbar-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.helper-text {
+    margin: 0.45rem 0 0;
+    color: #48605a;
+    font-size: 0.83rem;
+}
+
+.claim-status-note {
+    margin-top: 0.55rem;
+    max-width: 880px;
+    color: #3d5b54;
+}
+
+.claim-requirements-picker {
+    margin-top: 0.75rem;
+    border: 1px solid #d1dfdc;
+    border-radius: 10px;
+    padding: 0.7rem;
+    background: #f8fbfa;
+}
+
+.claim-requirements-label {
+    margin: 0 0 0.45rem;
+    font-weight: 700;
+    color: #21443f;
+}
+
+.claim-requirements-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem 0.85rem;
+}
+
+.claim-requirement-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.9rem;
+    color: #24433f;
+}
+
+.claim-requirement-option input[type='checkbox'] {
+    width: 15px;
+    height: 15px;
+}
+
+.claim-slip-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 0.4rem 0 1rem;
+}
+
+.claim-slip-sheet {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 890px;
+    background: #fff;
+    border: 1px solid #353535;
+    padding: 12px 12px 10px;
+    font-family: Arial, Helvetica, sans-serif;
+    color: #141414;
+    display: flex;
+    flex-direction: column;
+}
+
+.claim-slip-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.claim-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.claim-brand {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+}
+
+.claim-logo {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 1px solid #333;
+}
+
+.claim-brand-text p {
+    margin: 0;
+    text-transform: uppercase;
+    line-height: 1.1;
+}
+
+.claim-brand-text .line-big {
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 0.85px;
+}
+
+.claim-brand-text .line-mid {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.55px;
+}
+
+.claim-brand-text .line-small {
+    font-size: 9px;
+    letter-spacing: 0.3px;
+}
+
+.claim-title-block {
+    min-width: 205px;
+    text-align: center;
+}
+
+.claim-title-block h1 {
+    margin: 0;
+    font-size: 68px;
+    line-height: 0.83;
+    text-transform: uppercase;
+    font-weight: 900;
+}
+
+.claim-date-box p {
+    margin: 0 0 3px;
+    font-size: 34px;
+    font-weight: 800;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.claim-date-line {
+    border: 2px solid #2a2a2a;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.claim-meta-row {
+    margin-top: 4px;
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 10px;
+    align-items: end;
+    border-top: 1px solid #bbb;
+    padding-top: 5px;
+}
+
+.claim-student-row {
+    display: block;
+}
+
+.claim-field {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    margin-bottom: 1px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.25px;
+}
+
+.fill-value {
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.fill-line {
+    flex: 0 0 50%;
+    width: 50%;
+    max-width: 50%;
+    border-bottom: 1px solid #2a2a2a;
+    min-height: 11px;
+}
+
+.claim-mid-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.18fr;
+    gap: 8px;
+    margin-top: 0;
+}
+
+.claim-panel {
+    border: 1px solid #bbb;
+    background: #f1f1f1;
+    padding: 8px 9px;
+}
+
+.claim-panel h3 {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.25px;
+}
+
+.claim-panel p,
+.claim-panel li {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.25;
+}
+
+.claim-panel ol,
+.claim-panel ul {
+    margin: 2px 0 0 12px;
+    padding: 0;
+}
+
+.claim-doc-grid {
+    display: grid;
+    grid-template-columns: 1fr 0.75fr;
+    gap: 8px;
+}
+
+.claim-requirement-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.claim-requirement-list li {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.25;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.req-box {
+    width: 11px;
+    height: 11px;
+    border: 1px solid #2a2a2a;
+    display: inline-block;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.req-box.is-checked::after {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 2px;
+    width: 6px;
+    height: 3px;
+    border-left: 1.5px solid #145c35;
+    border-bottom: 1.5px solid #145c35;
+    transform: rotate(-45deg);
+}
+
+.claim-dash-list {
+    margin-left: 0 !important;
+    list-style: none;
+}
+
+.claim-dash-list li {
+    position: relative;
+    padding-left: 12px;
+}
+
+.claim-dash-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 8px;
+    border-bottom: 1px solid #1f1f1f;
+}
+
+.claim-request-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 0.88fr;
+    gap: 9px;
+    margin-top: 0;
+}
+
+.claim-request-head {
+    margin: 0 0 2px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.2px;
+}
+
+.box {
+    width: 13px;
+    height: 13px;
+    border: 1px solid #2a2a2a;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.box.is-checked {
+    position: relative;
+}
+
+.box.is-checked::after {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 2px;
+    width: 5px;
+    height: 3px;
+    border-left: 1.5px solid #145c35;
+    border-bottom: 1.5px solid #145c35;
+    transform: rotate(-45deg);
+}
+
+.claim-request-col ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.claim-request-col li {
+    font-size: 10px;
+    text-transform: uppercase;
+    margin: 0;
+    position: relative;
+    padding-left: 20px;
+    letter-spacing: 0.2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.claim-request-col li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 13px;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.claim-request-col li.is-requested::before {
+    width: 5px;
+    height: 3px;
+    border-left: 1.4px solid #145c35;
+    border-bottom: 1.4px solid #145c35;
+    border-top: 0;
+    transform: rotate(-45deg);
+    top: 3px;
+    left: 1px;
+}
+
+.item-name {
+    flex: 1;
+}
+
+.item-price {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.tor-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.tor-price {
+    font-weight: 700;
+}
+
+.claim-list-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.claim-others {
+    margin: 4px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.claim-others .line {
+    flex: 1;
+    border-bottom: 1px solid #2a2a2a;
+    min-height: 10px;
+}
+
+.claim-disclaimer {
+    margin-top: 0;
+    border-top: 3px dashed #2a2a2a;
+    border-bottom: 1px solid #bfc4c3;
+    background: #eceff0;
+    padding: 4px 6px;
+}
+
+.claim-disclaimer h4 {
+    margin: 0 0 2px;
+    font-size: 9px;
+    text-transform: uppercase;
+}
+
+.claim-disclaimer p {
+    margin: 0;
+    font-size: 9px;
+    line-height: 1.2;
+}
+
+.claim-foot {
+    margin-top: 3px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+@media screen and (max-width: 1100px) {
+    .claim-slip-sheet {
+        max-width: 100%;
+    }
+
+    .claim-brand-text .line-big {
+        font-size: 14px;
+    }
+
+    .claim-title-block h1 {
+        font-size: 50px;
+    }
+
+    .claim-meta-row {
+        grid-template-columns: 1fr;
+    }
+
+    .claim-student-row {
+        grid-template-columns: 1fr;
+        gap: 1px;
+    }
+
+    .claim-date-box {
+        max-width: 210px;
+    }
+
+    .claim-date-box p {
+        font-size: 20px;
+    }
+
+    .claim-mid-grid,
+    .claim-request-grid,
+    .claim-doc-grid,
+    .claim-list-two-col {
+        grid-template-columns: 1fr;
+    }
+
+    .claim-requirements-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media print {
+    @page {
+        size: A4 landscape;
+        margin: 4mm;
+    }
+
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .admin-sidebar,
+    .admin-topbar,
+    .claim-slip-toolbar {
+        display: none !important;
+    }
+
+    .admin-shell,
+    .admin-main,
+    .dashboard-wrap {
+        display: block;
+        padding: 0;
+        margin: 0;
+        background: #fff;
+    }
+
+    .claim-slip-wrap {
+        padding: 0;
+        display: block;
+    }
+
+    .claim-slip-sheet {
+        border: 1px solid #353535;
+        width: 100%;
+        max-width: 100%;
+        min-height: 0;
+        margin: 0 auto;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .claim-slip-body {
+        min-height: 0;
+    }
+}

@@ -1,0 +1,220 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Requests - SLSU{% endblock %}
+
+{% block admin_content %}
+<section class="dashboard-wrap request-page">
+    <h2>Requests</h2>
+
+    <form method="get" action="{{ url_for('admin_requests') }}" class="request-filter-row">
+        <div class="request-filter-group">
+            <label for="status">Filter:</label>
+            <select id="status" name="status" class="admin-input request-filter-input" onchange="this.form.submit()">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="accepted" {% if status_filter == 'accepted' %}selected{% endif %}>Accepted</option>
+                <option value="on_going_validation" {% if status_filter == 'on_going_validation' %}selected{% endif %}>On Going Validation</option>
+                <option value="found_in_archive" {% if status_filter == 'found_in_archive' %}selected{% endif %}>Document Found in Archive</option>
+                <option value="in_process" {% if status_filter == 'in_process' %}selected{% endif %}>Document in Process</option>
+                <option value="ready_for_pickup" {% if status_filter == 'ready_for_pickup' %}selected{% endif %}>Ready for Pickup</option>
+            </select>
+        </div>
+
+        <div class="request-search-group">
+            <input type="text" name="q" value="{{ search }}" class="admin-input request-search-input" placeholder="Search student, number, document...">
+            <button type="submit" class="doc-btn doc-btn-secondary">Search</button>
+        </div>
+    </form>
+
+    <section class="recent-card request-card">
+        <h3>Student Requests</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Reference Code</th>
+                        <th>Student No.</th>
+                        <th>Student Name</th>
+                        <th>Document Type</th>
+                        <th>Date Requested</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in requests_rows %}
+                    <tr>
+                        <td>{{ row.reference_code or 'N/A' }}</td>
+                        <td>{{ row.student_id or 'N/A' }}</td>
+                        <td>{{ row.student_name }}</td>
+                        <td>{{ row.document_type or 'N/A' }}</td>
+                        <td>{{ row.date_requested }}</td>
+                        <td><span class="status-pill status-{{ row.status }}">{{ row.status|replace('_', ' ')|title }}</span></td>
+                        <td class="request-action-cell">
+                            <div class="request-action-group">
+                            <button
+                                type="button"
+                                class="doc-btn request-open-modal"
+                                data-action-url="{{ url_for('admin_request_update_status', booking_id=row.booking_id) }}"
+                                data-current-status="{{ row.status }}"
+                                data-rejection-message="{{ row.rejection_message or '' }}"
+                            >Update</button>
+                            {% if row.status in ['accepted', 'on_going_validation', 'found_in_archive', 'in_process', 'ready_for_pickup', 'claimed'] %}
+                            <a
+                                href="{{ url_for('admin_archive_claim_slip', booking_id=row.booking_id) }}"
+                                class="doc-btn doc-btn-secondary request-claim-slip-btn"
+                            >View Claim Slip</a>
+                            {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% if row.status == 'rejected' and row.rejection_message %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="request-rejection-preview">
+                                <strong>Rejection message:</strong> {{ row.rejection_message }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7">No requests found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="request-modal" id="requestUpdateModal" hidden>
+        <div class="request-modal-backdrop" data-close-request-modal></div>
+        <div class="request-modal-card" role="dialog" aria-modal="true" aria-labelledby="requestModalTitle">
+            <div class="request-modal-head">
+                <h3 id="requestModalTitle">Update Request Status</h3>
+                <button type="button" class="request-modal-close" aria-label="Close" data-close-request-modal>&times;</button>
+            </div>
+            <form method="post" id="requestUpdateForm" class="request-modal-form">
+                <input type="hidden" name="status_filter" value="{{ status_filter }}">
+                <input type="hidden" name="search" value="{{ search }}">
+                <input type="hidden" name="return_page" value="requests">
+
+                <label for="modal-request-status">Status</label>
+                <select id="modal-request-status" name="status" class="admin-input request-status-select" required>
+                    <option value="pending">Pending</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="in_process">Document in Process</option>
+                    <option value="ready_for_pickup">Ready for Pickup</option>
+                    <option value="claimed">Claimed</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <p class="request-progress-note" style="margin-top: 0.45rem; font-size: 0.84rem; color: #4f625c;">
+                    Statuses must be updated sequentially: Pending, Accepted, Document in Process, Ready for Pickup, Claimed. Rejected can still be used when needed.
+                </p>
+
+                <label for="modal-rejection-message" class="request-rejection-label">Rejection Message</label>
+                <textarea
+                    id="modal-rejection-message"
+                    name="rejection_message"
+                    class="admin-input request-rejection-message-modal"
+                    placeholder="Add custom rejection message for the student..."
+                    minlength="10"
+                ></textarea>
+
+                <div class="request-modal-actions">
+                    <button type="submit" class="doc-btn">Save Update</button>
+                    <button type="button" class="doc-btn doc-btn-secondary" data-close-request-modal>Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const modal = document.getElementById('requestUpdateModal');
+        const form = document.getElementById('requestUpdateForm');
+        const statusSelect = document.getElementById('modal-request-status');
+        const rejectionNote = document.getElementById('modal-rejection-message');
+        const rejectionLabel = document.querySelector('.request-rejection-label');
+        const statusOrder = ['pending', 'accepted', 'in_process', 'ready_for_pickup', 'claimed'];
+
+        const getNormalizedStatus = (value) => {
+            const raw = String(value || '').trim().toLowerCase();
+            if (raw === 'on_going_validation') return 'accepted';
+            if (raw === 'found_in_archive') return 'in_process';
+            return raw;
+        };
+
+        const syncSequentialStatusOptions = (currentStatus) => {
+            if (!statusSelect) return;
+
+            const normalized = getNormalizedStatus(currentStatus || statusSelect.value || 'pending');
+            const currentIndex = statusOrder.indexOf(normalized);
+            const nextIndex = currentIndex >= 0 ? currentIndex + 1 : 1;
+
+            Array.from(statusSelect.options).forEach((option) => {
+                const optionValue = String(option.value || '').trim().toLowerCase();
+                if (optionValue === 'rejected') {
+                    option.disabled = false;
+                    return;
+                }
+
+                if (currentIndex < 0) {
+                    option.disabled = optionValue !== 'pending' && optionValue !== 'accepted';
+                    return;
+                }
+
+                const optionIndex = statusOrder.indexOf(optionValue);
+                option.disabled = optionIndex !== currentIndex && optionIndex !== nextIndex;
+            });
+        };
+
+        const toggleRejection = () => {
+            const isRejected = statusSelect && statusSelect.value === 'rejected';
+            rejectionNote.classList.toggle('is-visible', isRejected);
+            rejectionLabel.classList.toggle('is-visible', isRejected);
+            rejectionNote.required = isRejected;
+            if (!isRejected) {
+                rejectionNote.value = '';
+            }
+        };
+
+        const openModal = (button) => {
+            const currentStatus = getNormalizedStatus(button.getAttribute('data-current-status') || 'pending');
+            form.action = button.getAttribute('data-action-url') || '';
+            statusSelect.value = currentStatus || 'pending';
+            rejectionNote.value = button.getAttribute('data-rejection-message') || '';
+            syncSequentialStatusOptions(currentStatus);
+            toggleRejection();
+            modal.hidden = false;
+            document.body.style.overflow = 'hidden';
+        };
+
+        const closeModal = () => {
+            modal.hidden = true;
+            document.body.style.overflow = '';
+        };
+
+        document.querySelectorAll('.request-open-modal').forEach((button) => {
+            button.addEventListener('click', () => openModal(button));
+        });
+
+        document.querySelectorAll('[data-close-request-modal]').forEach((el) => {
+            el.addEventListener('click', closeModal);
+        });
+
+        if (statusSelect) {
+            statusSelect.addEventListener('change', toggleRejection);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && modal && !modal.hidden) {
+                closeModal();
+            }
+        });
+    })();
+</script>
+{% endblock %}

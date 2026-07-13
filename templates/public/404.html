@@ -1,0 +1,13 @@
+{% extends "public/base.html" %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block content %}
+<section class="about-section">
+    <div class="about-card" style="text-align:center;">
+        <h1 style="color: var(--color-dark); margin-bottom: 0.75rem;">404</h1>
+        <p>The page you are looking for could not be found.</p>
+        <a href="{{ url_for('index') }}" class="cta-button" style="margin-top: 1rem;">Return Home</a>
+    </div>
+</section>
+{% endblock %}

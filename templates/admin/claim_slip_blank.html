@@ -1,0 +1,283 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Claim Slip Blank Form - SLSU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_claim_slip.css') }}">
+{% endblock %}
+
+{% block admin_content %}
+{% set data = form_data or {} %}
+{% set cert_items = data.certification_items if data.certification_items is defined else [] %}
+{% set cred_items = data.credentials_records_items if data.credentials_records_items is defined else [] %}
+{% set auth_items = data.authentication_items if data.authentication_items is defined else [] %}
+{% set claim_status = (data.status or '')|lower %}
+{% set is_rejected = claim_status == 'rejected' %}
+{% set can_send_claim_slip = not is_rejected %}
+{% set req_options = data.claim_requirement_options if data.claim_requirement_options is defined and data.claim_requirement_options else [
+    {'key': 'documentary_stamp', 'label': 'Documentary Stamp (1 stamp per document)', 'column': 1, 'is_checked': false},
+    {'key': 'school_id_valid_id', 'label': 'School ID / Any Valid ID', 'column': 1, 'is_checked': false},
+    {'key': 'psa_nso_or_affidavit', 'label': 'Original PSA/NSO, Marriage Certificate Affidavit or', 'column': 1, 'is_checked': false},
+    {'key': 'form_137', 'label': 'Form 137', 'column': 1, 'is_checked': false},
+    {'key': 'photo_2x2', 'label': '2x2 Picture w/ Nametag (RECENT PHOTO)', 'column': 1, 'is_checked': false},
+    {'key': 'transfer_credentials', 'label': 'Transfer Credentials (from previous school of attendance)', 'column': 1, 'is_checked': false},
+    {'key': 'police_clearance', 'label': 'Police Clearance', 'column': 2, 'is_checked': false},
+    {'key': 'medical_good_moral', 'label': 'Medical/Good Moral Certificate', 'column': 2, 'is_checked': false}
+] %}
+{% set req_col1 = req_options | selectattr('column', 'equalto', 1) | list %}
+{% set req_col2 = req_options | selectattr('column', 'equalto', 2) | list %}
+{% set cert_mid = ((cert_items|length + 1) // 2) %}
+{% set is_pdf_mode = pdf_mode|default(false) %}
+<section class="dashboard-wrap">
+    {% if not is_pdf_mode %}
+    <div class="claim-slip-toolbar">
+        <h2>Claim Slip Preview</h2>
+        <div class="claim-slip-toolbar-actions">
+            <button type="button" class="doc-btn" onclick="window.print()">Print / Save PDF</button>
+            {% if data.booking_id %}
+            {% if can_send_claim_slip %}
+            <button type="button" class="doc-btn" id="openSendClaimSlipModal" onclick="(function(){var modal=document.getElementById('claimSlipSendModal');if(!modal)return;modal.hidden=false;document.body.style.overflow='hidden';})();">Send via Email</button>
+            {% else %}
+            <button type="button" class="doc-btn" disabled title="Claim slip is not available for rejected requests.">Send via Email</button>
+            {% endif %}
+            {% endif %}
+            <a href="{{ url_for('admin_archive') }}" class="doc-btn doc-btn-secondary">Back to Archive</a>
+        </div>
+    </div>
+    {% if data.booking_id and not can_send_claim_slip %}
+    <p class="helper-text claim-status-note">STATUS: Claim slips are not available for rejected requests.</p>
+    {% endif %}
+    {% endif %}
+
+    <div class="claim-slip-wrap">
+        <section class="claim-slip-sheet" aria-label="Blank claim slip form">
+            <header class="claim-head">
+                <div class="claim-brand">
+                    <img src="{{ url_for('static', filename='images/logo_main.png') }}" alt="SLSU Seal" class="claim-logo">
+                    <div class="claim-brand-text">
+                        <p class="line-small">REPUBLIC OF THE PHILIPPINES</p>
+                        <p class="line-big">SOUTHERN LUZON STATE UNIVERSITY</p>
+                        <p class="line-mid">OFFICE OF THE UNIVERSITY REGISTRAR</p>
+                        <p class="line-small">QUEZON AVENUE BRGY. KULAPI LUCBAN, QUEZON</p>
+                        <p class="line-small">(042) 540-4763 &nbsp; ● &nbsp; slsuregistrar@slsu.edu.ph</p>
+                    </div>
+                </div>
+                <div class="claim-title-block">
+                    <h1>CLAIM<br>SLIP</h1>
+                </div>
+            </header>
+
+            <div class="claim-slip-body">
+                <section class="claim-meta-row">
+                    <div class="claim-student-row">
+                        <div class="claim-field"><span>NAME OF STUDENT:</span><span class="fill-value"><u><strong>{{ data.student_full_name or '' }} </strong></u></span></div>
+                        <div class="claim-field"><span>PROGRAM/COURSE:</span><span class="fill-value"><u><strong>{{ data.program_course or '' }}</strong></u></span></div>
+                        <div class="claim-field"><span>DATE OF REQUEST:</span><span class="fill-value"><u><strong>{{ data.date_of_request or '' }}</strong></u></span></div>
+                    </div>
+                    <div class="claim-date-box">
+                        <p>CLAIM DATE:</p>
+                        <div class="claim-date-line"><strong>{{ data.claim_date or '' }}</strong></div>
+                    </div>
+                </section>
+
+                <section class="claim-mid-grid">
+                    <article class="claim-panel">
+                        <h3>IMPORTANT:</h3>
+                        <p>RECORDS WILL BE RELEASED ONLY TO:</p>
+                        <ol>
+                            <li>The Owner/Student - upon presentation of his/her original SLSU Student ID Card and the Claim Slip</li>
+                            <li>An Authorized Representative - the representative must present:</li>
+                        </ol>
+                        <ul>
+                            <li>A signed Authorization Letter from the Owner/Student</li>
+                            <li>A copy of the Owner/Student's valid ID</li>
+                            <li>The representative's own valid ID</li>
+                        </ul>
+                    </article>
+
+                    <article class="claim-panel">
+                        <h3>PLEASE BRING THE FOLLOWING UPON CLAIMING REQUESTED DOCS:</h3>
+                        <div class="claim-doc-grid">
+                            <ul class="claim-requirement-list">
+                                {% for item in req_col1 %}
+                                <li>
+                                    <span class="req-box {% if item.is_checked %}is-checked{% endif %}"></span>
+                                    <span>{{ item.label }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <ul class="claim-requirement-list">
+                                {% for item in req_col2 %}
+                                <li>
+                                    <span class="req-box {% if item.is_checked %}is-checked{% endif %}"></span>
+                                    <span>{{ item.label }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="claim-request-grid">
+                    <div class="claim-request-col">
+                        <p class="claim-request-head"><span class="box {% if data.check_certification %}is-checked{% endif %}"></span> CERTIFICATION</p>
+                        <div class="claim-list-two-col">
+                            <ul>
+                                {% for item in cert_items[:cert_mid] %}
+                                <li class="{% if item.is_requested %}is-requested{% endif %}">
+                                    <span class="item-name">{{ item.name|upper }}</span>
+                                    {% if item.is_requested and ((item.price or 0)|float) > 0 %}
+                                    <span class="item-price">Price: {{ '%.2f'|format((item.price or 0)|float) }}</span>
+                                    {% endif %}
+                                </li>
+                                {% else %}
+                                <li><span class="item-name">-</span></li>
+                                {% endfor %}
+                            </ul>
+                            <ul>
+                                {% for item in cert_items[cert_mid:] %}
+                                <li class="{% if item.is_requested %}is-requested{% endif %}">
+                                    <span class="item-name">{{ item.name|upper }}</span>
+                                    {% if item.is_requested and ((item.price or 0)|float) > 0 %}
+                                    <span class="item-price">Price: {{ '%.2f'|format((item.price or 0)|float) }}</span>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="claim-request-col">
+                        <p class="claim-request-head"><span class="box {% if data.check_credentials_records %}is-checked{% endif %}"></span> CREDENTIALS/RECORDS:</p>
+                        <ul>
+                            {% for item in cred_items %}
+                            <li class="{% if item.is_requested %}is-requested{% endif %}">
+                                <span class="item-name">{{ item.name|upper }}</span>
+                                {% if item.is_requested and ((item.price or 0)|float) > 0 %}
+                                <span class="item-price">Price: {{ '%.2f'|format((item.price or 0)|float) }}</span>
+                                {% endif %}
+                            </li>
+                            {% else %}
+                            <li><span class="item-name">-</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="claim-request-col">
+                        <p class="claim-request-head"><span class="box {% if data.check_authentication %}is-checked{% endif %}"></span> AUTHENTICATION</p>
+                        <ul>
+                            {% for item in auth_items %}
+                            <li class="{% if item.is_requested %}is-requested{% endif %}">
+                                <span class="item-name">{{ item.name|upper }}</span>
+                                {% if item.is_requested and ((item.price or 0)|float) > 0 %}
+                                <span class="item-price">Price: {{ '%.2f'|format((item.price or 0)|float) }}</span>
+                                {% endif %}
+                            </li>
+                            {% else %}
+                            <li><span class="item-name">-</span></li>
+                            {% endfor %}
+                        </ul>
+                        <p class="claim-others"><span class="box"></span> OTHERS (Specify): <span class="line"></span></p>
+                    </div>
+                </section>
+
+                <section class="claim-disclaimer">
+                    <h4>DISCLAIMER</h4>
+                    <p>
+                        The processing and release of student records are subject to university policies and standard verification procedures.
+                        The office reserves the right to withhold the release of documents in cases of incomplete requirements,
+                        unsettled accounts, or discrepancies found during evaluation. The student is responsible for ensuring the
+                        accuracy of the information provided.
+                    </p>
+                </section>
+            </div>
+
+            <footer class="claim-foot">
+                <span>AA-REG-2.01F1, REV.3</span>
+                <span>{{ data.reference_code or 'DRN-____-____' }}</span>
+            </footer>
+        </section>
+    </div>
+
+    {% if not is_pdf_mode and data.booking_id and can_send_claim_slip %}
+    <div class="request-modal" id="claimSlipSendModal" hidden>
+        <div class="request-modal-backdrop" data-close-claim-slip-modal onclick="(function(){var modal=document.getElementById('claimSlipSendModal');if(!modal)return;modal.hidden=true;document.body.style.overflow='';})();"></div>
+        <div class="request-modal-card" role="dialog" aria-modal="true" aria-labelledby="claimSlipSendTitle">
+            <div class="request-modal-head">
+                <h3 id="claimSlipSendTitle">Send Claim Slip via Email</h3>
+                <button type="button" class="request-modal-close" aria-label="Close" data-close-claim-slip-modal onclick="(function(){var modal=document.getElementById('claimSlipSendModal');if(!modal)return;modal.hidden=true;document.body.style.overflow='';})();">&times;</button>
+            </div>
+            <form method="post" action="{{ url_for('admin_archive_claim_slip_send_email', booking_id=data.booking_id) }}" class="request-modal-form">
+                <label class="admin-label" for="claimDateInput">Claim Date</label>
+                <input
+                    id="claimDateInput"
+                    name="claim_date"
+                    type="date"
+                    class="admin-input"
+                    value="{{ data.claim_date_iso or '' }}"
+                    required
+                >
+                <p class="helper-text">This date will be saved to the request and printed on the claim slip PDF.</p>
+                <div class="claim-requirements-picker">
+                    <p class="claim-requirements-label">Requirements To Bring</p>
+                    <div class="claim-requirements-grid">
+                        {% for item in req_options %}
+                        <label class="claim-requirement-option" for="req-{{ item.key }}">
+                            <input
+                                id="req-{{ item.key }}"
+                                type="checkbox"
+                                name="claim_requirements"
+                                value="{{ item.key }}"
+                                {% if item.is_checked %}checked{% endif %}
+                            >
+                            <span>{{ item.label }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="request-modal-actions">
+                    <button type="submit" class="doc-btn">Save & Send Email</button>
+                    <button type="button" class="doc-btn doc-btn-secondary" data-close-claim-slip-modal onclick="(function(){var modal=document.getElementById('claimSlipSendModal');if(!modal)return;modal.hidden=true;document.body.style.overflow='';})();">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+{% set js_data = form_data or {} %}
+{% set js_is_pdf_mode = pdf_mode|default(false) %}
+{% if not js_is_pdf_mode and js_data.booking_id and can_send_claim_slip %}
+<script>
+    (function () {
+        const openBtn = document.getElementById('openSendClaimSlipModal');
+        const modal = document.getElementById('claimSlipSendModal');
+        if (!openBtn || !modal) {
+            return;
+        }
+
+        const closeModal = () => {
+            modal.hidden = true;
+            document.body.style.overflow = '';
+        };
+
+        openBtn.addEventListener('click', () => {
+            modal.hidden = false;
+            document.body.style.overflow = 'hidden';
+        });
+
+        document.querySelectorAll('[data-close-claim-slip-modal]').forEach((el) => {
+            el.addEventListener('click', closeModal);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.hidden) {
+                closeModal();
+            }
+        });
+    })();
+</script>
+{% endif %}
+{% endblock %}

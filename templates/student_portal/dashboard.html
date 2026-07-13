@@ -1,0 +1,331 @@
+{% extends "public/base.html" %}
+
+{% block title %}Student Dashboard - SLSU{% endblock %}
+
+{% block content %}
+<section class="student-dashboard-wrap">
+    <div class="student-dashboard-head">
+        <h1>Student Dashboard</h1>
+        <p>View available document types and current request pricing.</p>
+    </div>
+
+    <div class="student-kpi-grid">
+        <article class="student-kpi-card">
+            <h3>Total Document Types</h3>
+            <p>{{ document_types|length }}</p>
+        </article>
+        <article class="student-kpi-card">
+            <h3>Paid Documents</h3>
+            <p>{{ document_types|selectattr('price')|list|length }}</p>
+        </article>
+        <article class="student-kpi-card">
+            <h3>Quick Actions</h3>
+            <p><a href="{{ url_for('student_profile') }}">Update Profile</a></p>
+        </article>
+    </div>
+
+    {% if not profile_complete %}
+    <div class="student-status-banner is-danger">
+        <strong>Profile required:</strong> Please complete your student profile first before requesting forms.
+        <a href="{{ url_for('student_profile') }}" class="student-inline-link">Complete Profile</a>
+    </div>
+    {% endif %}
+
+    
+<br>
+    <div class="student-doc-card student-slot-card" id="student-booking-section">
+        <h2>Request Slot Availability</h2>
+        <p class="student-slot-note">
+            Select a date from the calendar. Requests are allowed only for today and future dates with available slots.
+            {% if not profile_complete %}
+            <strong>Profile completion is required before submitting a request.</strong>
+            {% endif %}
+        </p>
+
+        <div class="student-calendar-nav">
+            <a href="{{ url_for('student_dashboard', year=prev_year, month=prev_month) }}" class="student-calendar-nav-btn">&larr; Prev</a>
+            <h3>{{ selected_month_name }} {{ selected_year }}</h3>
+            <a href="{{ url_for('student_dashboard', year=next_year, month=next_month) }}" class="student-calendar-nav-btn">Next &rarr;</a>
+        </div>
+
+        <div class="student-calendar-wrap">
+            <table class="student-calendar-table">
+                <thead>
+                    <tr>
+                        <th>Sunday</th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                        <th>Saturday</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in month_weeks %}
+                    <tr>
+                        {% for day in week %}
+                            {% if day == 0 %}
+                            <td class="student-calendar-empty"></td>
+                            {% else %}
+                                {% set day_str = '%04d-%02d-%02d'|format(selected_year, selected_month, day) %}
+                                {% set day_slot = slot_map.get(day_str) %}
+                                {% set is_past = day_str < today_iso %}
+                                {% set has_slots = day_slot and day_slot.available_slots > 0 %}
+                                <td class="student-calendar-day{% if is_past %} is-past{% endif %}{% if has_slots %} is-bookable{% endif %}">
+                                    <div class="student-day-number">{{ day }}</div>
+                                    {% if day_slot %}
+                                        <div class="student-day-slots{% if day_slot.available_slots <= 0 %} is-full{% endif %}">
+                                            {{ day_slot.available_slots }} / {{ day_slot.total_slots }} slots
+                                        </div>
+                                    {% else %}
+                                        <div class="student-day-slots is-none">No 
+                                            Slot Available
+                                        </div>
+                                    {% endif %}
+
+                                    {% if not is_past and has_slots and profile_complete %}
+                                    <button
+                                        type="button"
+                                        class="student-day-book-btn"
+                                        data-slot-date="{{ day_str }}"
+                                        data-total="{{ day_slot.total_slots }}"
+                                        data-used="{{ day_slot.used_slots }}"
+                                        data-available="{{ day_slot.available_slots }}"
+                                    >Select</button>
+                                    {% elif is_past %}
+                                    <span class="student-day-badge">Past</span>
+                                    {% elif not profile_complete and has_slots %}
+                                    <span class="student-day-badge is-locked">Complete Profile</span>
+                                    {% elif day_slot and day_slot.available_slots <= 0 %}
+                                    <span class="student-day-badge is-full">Full</span>
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+        <div class="student-modal" id="studentBookingModal" hidden>
+                <div class="student-modal-backdrop" data-close-modal></div>
+                <div class="student-modal-card" role="dialog" aria-modal="true" aria-labelledby="studentBookingTitle">
+                        <div class="student-modal-head">
+                            <h3 id="studentBookingTitle">Submit Document Request</h3>
+                                <button type="button" class="student-modal-close" aria-label="Close" data-close-modal>&times;</button>
+                        </div>
+                        <div class="student-modal-body">
+                                <p class="student-modal-date" id="studentModalDate">Date: -</p>
+                                <p class="student-modal-slots" id="studentModalSlots">Available Slots: -</p>
+
+                                <form method="post" action="{{ url_for('student_book_appointment') }}" class="student-book-picker-form student-book-modal-form">
+                                        <input type="hidden" id="student-modal-slot-date" name="slot_date" required>
+
+                                        <label for="student-purpose" class="student-book-picker-label">Purpose of Request:</label>
+                                        <input id="student-purpose" type="text" name="purpose" class="student-book-picker-input" placeholder="Employment, Scholarship, etc." required>
+
+                                        <div class="student-doc-select-grid">
+                                                <div class="student-doc-select-col">
+                                                        <h4>Request for Records</h4>
+                                                        {% for doc in records_docs %}
+                                                        <label class="student-check-option">
+                                                            <input type="checkbox" name="document_type_ids" value="{{ doc.id }}" data-doc-name="{{ doc.name|lower|e }}" data-single-request-only="{{ '1' if doc.single_request_only else '0' }}">
+                                                                <span>{{ doc.name }} <strong>(PHP {{ '%.2f'|format(doc.price or 0) }})</strong></span>
+                                                        </label>
+                                                        {% if doc.name|lower == 'tor' or 'transcript of records' in doc.name|lower %}
+                                                        <p class="student-slot-note student-slot-note-warning" style="margin: 0 0 8px 28px; font-size: 0.82rem;">
+                                                            TOR: first 2 pages are covered by the base fee. Add PHP 60.00 for each succeeding page.
+                                                        </p>
+                                                        {% endif %}
+                                                        {% else %}
+                                                        <p class="student-check-empty">No records item available.</p>
+                                                        {% endfor %}
+                                                </div>
+                                                <div class="student-doc-select-col">
+                                                        <h4>Request for Certifications</h4>
+                                                        {% for doc in cert_docs %}
+                                                        <label class="student-check-option">
+                                                            <input type="checkbox" name="document_type_ids" value="{{ doc.id }}" data-doc-name="{{ doc.name|lower|e }}" data-single-request-only="{{ '1' if doc.single_request_only else '0' }}">
+                                                                <span>{{ doc.name }} <strong>(PHP {{ '%.2f'|format(doc.price or 0) }})</strong></span>
+                                                        </label>
+                                                        {% else %}
+                                                        <p class="student-check-empty">No certification item available.</p>
+                                                        {% endfor %}
+                                                </div>
+                                                    <div class="student-doc-select-col">
+                                                        <h4>Request for Authentication</h4>
+                                                        {% for doc in auth_docs %}
+                                                        <label class="student-check-option">
+                                                                <input type="checkbox" name="document_type_ids" value="{{ doc.id }}" data-doc-name="{{ doc.name|lower|e }}" data-single-request-only="{{ '1' if doc.single_request_only else '0' }}">
+                                                            <span>{{ doc.name }} <strong>(PHP {{ '%.2f'|format(doc.price or 0) }})</strong></span>
+                                                        </label>
+                                                        {% else %}
+                                                        <p class="student-check-empty">No authentication item available.</p>
+                                                        {% endfor %}
+                                                    </div>
+                                        </div>
+
+                                        {% if ctc_service_docs %}
+                                        <div class="student-doc-select-col student-ctc-panel">
+                                            <h4>Certified True Copy (CTC) Options</h4>
+                                            <p class="student-check-empty student-ctc-help">Select this only when you need CTC processing.</p>
+                                            <label class="student-check-option">
+                                                <input type="radio" name="ctc_mode" value="none" checked>
+                                                <span>None</span>
+                                            </label>
+                                            <label class="student-check-option">
+                                                <input type="radio" name="ctc_mode" value="external">
+                                                <span>CTC (I have my own original document)</span>
+                                            </label>
+                                            <label class="student-check-option">
+                                                <input type="radio" name="ctc_mode" value="apply_selected">
+                                                <span>CTC for selected requested document(s)</span>
+                                            </label>
+
+                                            <div id="ctcExternalFields" hidden>
+                                                <label for="ctc-external-label" class="student-book-picker-label">Original document name:</label>
+                                                <input id="ctc-external-label" type="text" name="ctc_external_label" class="student-book-picker-input" placeholder="Example: Diploma, Birth Certificate">
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <input type="hidden" name="ctc_mode" value="none">
+                                        {% endif %}
+
+                                        <p class="student-slot-note student-slot-note-warning student-rule-error" id="studentDocRuleError" hidden></p>
+
+                                        <p class="student-slot-note student-slot-note-warning"><strong>Note:</strong> TOR cannot be requested together with Certificate of Authentication and Verification.</p>
+                                        <div class="register-actions">
+                                            <button type="submit" class="student-slot-btn" id="studentSubmitRequestBtn">Submit Request</button>
+                                                <button type="button" class="secondary-link" data-close-modal>Cancel</button>
+                                        </div>
+                                </form>
+                        </div>
+                </div>
+        </div>
+        <br>
+        <div class="student-doc-card">
+        <h2>Request Progress</h2>
+        <p class="student-slot-note">Open the dedicated progress page to track each request with full details.</p>
+        <a href="{{ url_for('student_progress') }}" class="student-track-btn is-active">Open Progress Tracker</a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const modal = document.getElementById('studentBookingModal');
+        const slotInput = document.getElementById('student-modal-slot-date');
+        const dateLabel = document.getElementById('studentModalDate');
+        const slotsLabel = document.getElementById('studentModalSlots');
+        const ruleError = document.getElementById('studentDocRuleError');
+        const submitBtn = document.getElementById('studentSubmitRequestBtn');
+        const docChecks = Array.from(document.querySelectorAll('input[name="document_type_ids"]'));
+        const ctcModeInputs = Array.from(document.querySelectorAll('input[name="ctc_mode"]'));
+        const ctcExternalFields = document.getElementById('ctcExternalFields');
+        const ctcExternalInput = document.getElementById('ctc-external-label');
+
+        const hasTorSelected = () => {
+            return docChecks.some((input) => {
+                if (!input.checked) return false;
+                const name = String(input.getAttribute('data-doc-name') || '');
+                return name.includes('transcript of records') || name === 'tor';
+            });
+        };
+
+        const hasCavSelected = () => {
+            return docChecks.some((input) => {
+                if (!input.checked) return false;
+                const name = String(input.getAttribute('data-doc-name') || '');
+                return name.includes('certificate of authentication and verification') || name === 'cav';
+            });
+        };
+
+        const hasSingleRequestConflict = () => {
+            const selected = docChecks.filter((input) => input.checked);
+            if (selected.length <= 1) return false;
+            return selected.some((input) => input.getAttribute('data-single-request-only') === '1');
+        };
+
+        const selectedCtcMode = () => {
+            const checked = ctcModeInputs.find((input) => input.checked);
+            return checked ? checked.value : 'none';
+        };
+
+        const validateRequestRules = () => {
+            let error = '';
+            if (hasTorSelected() && hasCavSelected()) {
+                error = 'TOR cannot be requested together with Certificate of Authentication and Verification.';
+            } else if (hasSingleRequestConflict()) {
+                error = 'One selected document is marked as single request only and cannot be combined with other documents.';
+            }
+
+            if (ruleError) {
+                ruleError.hidden = !error;
+                ruleError.textContent = error;
+            }
+            if (submitBtn) {
+                submitBtn.disabled = Boolean(error);
+            }
+        };
+
+        const syncCtcFields = () => {
+            const mode = selectedCtcMode();
+            if (ctcExternalFields) {
+                ctcExternalFields.hidden = mode !== 'external';
+            }
+            if (ctcExternalInput) {
+                ctcExternalInput.required = mode === 'external';
+                if (mode !== 'external') {
+                    ctcExternalInput.value = '';
+                }
+            }
+        };
+
+        const openModal = (btn) => {
+            const slotDate = btn.getAttribute('data-slot-date');
+            const available = btn.getAttribute('data-available');
+            const total = btn.getAttribute('data-total');
+
+            slotInput.value = slotDate;
+            dateLabel.textContent = 'Date: ' + slotDate;
+            slotsLabel.textContent = 'Available Slots: ' + available + ' / ' + total;
+            modal.hidden = false;
+            document.body.style.overflow = 'hidden';
+        };
+
+        const closeModal = () => {
+            modal.hidden = true;
+            document.body.style.overflow = '';
+        };
+
+        document.querySelectorAll('.student-day-book-btn').forEach((btn) => {
+            btn.addEventListener('click', () => openModal(btn));
+        });
+
+        docChecks.forEach((input) => {
+            input.addEventListener('change', validateRequestRules);
+        });
+
+        ctcModeInputs.forEach((input) => {
+            input.addEventListener('change', syncCtcFields);
+        });
+
+        document.querySelectorAll('[data-close-modal]').forEach((el) => {
+            el.addEventListener('click', closeModal);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && modal && !modal.hidden) {
+                closeModal();
+            }
+        });
+
+        syncCtcFields();
+        validateRequestRules();
+    })();
+</script>
+{% endblock %}

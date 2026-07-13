@@ -1,0 +1,144 @@
+{% extends "public/base.html" %}
+
+{% block title %}Register - SLSU Catanauan Extension{% endblock %}
+
+{% block content %}
+<section class="login-section register-page">
+  <div class="login-grid register-grid">
+    <div class="login-visual register-visual">
+      <div class="login-visual-inner">
+        <p class="auth-kicker">Student Enrollment</p>
+        <h2>Create Your Student Portal</h2>
+        <p class="muted">Register once and manage all your document requests in one secure account.</p>
+        <ul class="register-benefits">
+          <li>Track request status in real time</li>
+          <li>Receive OTP-secured registration verification</li>
+          <li>Get faster registrar communication updates</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="login-card register-card">
+      {% if step == 'verify_otp' %}
+      <h3 class="login-card-title">Verify Your Email</h3>
+      <p class="muted register-subtitle">Enter the 6-digit OTP sent to <strong>{{ otp_email }}</strong>. This code expires in 5 minutes.</p>
+      <form method="post" action="{{ url_for('verify_registration_otp') }}" class="login-form register-form" novalidate>
+        <input type="hidden" name="otp_email" value="{{ otp_email }}">
+
+        <div class="otp-box">
+        <label class="form-label" for="otp_code">OTP Code</label>
+        <input
+          type="text"
+          id="otp_code"
+          name="otp_code"
+          maxlength="6"
+          class="form-input otp-input{% if errors and errors.get('otp_code') %} is-invalid{% endif %}"
+          placeholder="000000"
+          inputmode="numeric"
+          pattern="\d{6}"
+          required
+        >
+        {% if errors and errors.get('otp_code') %}
+          <p class="field-error" role="alert">{{ errors.get('otp_code') }}</p>
+        {% endif %}
+        </div>
+
+        <div class="auth-actions register-actions">
+          <button class="cta-button" type="submit">Verify OTP</button>
+          <a href="{{ url_for('register') }}" class="secondary-link">Back</a>
+        </div>
+      </form>
+      {% else %}
+      <h3 class="login-card-title">Student Registration</h3>
+      <p class="muted register-subtitle">Fill in your details. We will send a one-time password to your email before creating the account.</p>
+      <form method="post" action="{{ url_for('register') }}" class="login-form register-form" novalidate>
+
+        <div class="register-mini-grid">
+          <div class="field-group">
+            <label class="form-label" for="student_id">Student ID</label>
+            <input type="text" id="student_id" name="student_id" class="form-input{% if errors and errors.get('student_id') %} is-invalid{% endif %}" value="{{ form_data.student_id if form_data else '' }}" required>
+            {% if errors and errors.get('student_id') %}<p class="field-error" role="alert">{{ errors.get('student_id') }}</p>{% endif %}
+          </div>
+
+          <div class="field-group">
+            <label class="form-label" for="suffix">Suffix (Optional)</label>
+            <input type="text" id="suffix" name="suffix" class="form-input" value="{{ form_data.suffix if form_data else '' }}" placeholder="Jr., Sr., III">
+          </div>
+        </div>
+
+        <div class="register-name-grid">
+          <div class="field-group">
+            <label class="form-label" for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" class="form-input{% if errors and errors.get('first_name') %} is-invalid{% endif %}" value="{{ form_data.first_name if form_data else '' }}" required>
+            {% if errors and errors.get('first_name') %}<p class="field-error" role="alert">{{ errors.get('first_name') }}</p>{% endif %}
+          </div>
+
+          <div class="field-group">
+            <label class="form-label" for="middle_name">Middle Name</label>
+            <input type="text" id="middle_name" name="middle_name" class="form-input{% if errors and errors.get('middle_name') %} is-invalid{% endif %}" value="{{ form_data.middle_name if form_data else '' }}" required>
+            {% if errors and errors.get('middle_name') %}<p class="field-error" role="alert">{{ errors.get('middle_name') }}</p>{% endif %}
+          </div>
+
+          <div class="field-group">
+            <label class="form-label" for="last_name">Last Name</label>
+            <input type="text" id="last_name" name="last_name" class="form-input{% if errors and errors.get('last_name') %} is-invalid{% endif %}" value="{{ form_data.last_name if form_data else '' }}" required>
+            {% if errors and errors.get('last_name') %}<p class="field-error" role="alert">{{ errors.get('last_name') }}</p>{% endif %}
+          </div>
+        </div>
+
+        <label class="form-label" for="email">Email (Username)</label>
+        <input type="email" id="email" name="email" class="form-input{% if errors and errors.get('email') %} is-invalid{% endif %}" value="{{ form_data.email if form_data else '' }}" required>
+        {% if errors and errors.get('email') %}<p class="field-error" role="alert">{{ errors.get('email') }}</p>{% endif %}
+
+        <label class="form-label" for="password">Password</label>
+        <div class="input-wrap">
+          <input type="password" id="password" name="password" class="form-input{% if errors and errors.get('password') %} is-invalid{% endif %}" minlength="8" required>
+          <button type="button" class="password-toggle" data-toggle-password="password" aria-label="Show password" aria-pressed="false">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
+        {% if errors and errors.get('password') %}<p class="field-error" role="alert">{{ errors.get('password') }}</p>{% endif %}
+
+        <label class="form-label" for="confirm_password">Confirm Password</label>
+        <div class="input-wrap">
+          <input type="password" id="confirm_password" name="confirm_password" class="form-input{% if errors and errors.get('confirm_password') %} is-invalid{% endif %}" minlength="8" required>
+          <button type="button" class="password-toggle" data-toggle-password="confirm_password" aria-label="Show password" aria-pressed="false">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
+        {% if errors and errors.get('confirm_password') %}<p class="field-error" role="alert">{{ errors.get('confirm_password') }}</p>{% endif %}
+
+        <p class="security-note"><i class="fa-solid fa-shield-halved"></i> Registration data and OTP payload are encrypted before storage.</p>
+
+        <div class="auth-actions register-actions">
+          <button class="cta-button" type="submit">Register</button>
+          <a href="{{ url_for('login') }}" class="secondary-link">Back to sign in</a>
+        </div>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.querySelectorAll('[data-toggle-password]').forEach((toggleBtn) => {
+    toggleBtn.addEventListener('click', () => {
+      const inputId = toggleBtn.getAttribute('data-toggle-password');
+      const input = document.getElementById(inputId);
+      if (!input) {
+        return;
+      }
+
+      const hidden = input.type === 'password';
+      input.type = hidden ? 'text' : 'password';
+      toggleBtn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+      toggleBtn.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
+      toggleBtn.innerHTML = hidden
+        ? '<i class="fa-regular fa-eye-slash"></i>'
+        : '<i class="fa-regular fa-eye"></i>';
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "public/base.html" %}
+
+{% block title %}Student Home - SLSU Catanauan Extension{% endblock %}
+
+{% block content %}
+<section class="student-home-wrap">
+  <div class="student-home-head">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SLSU Logo" class="student-home-logo">
+    <h1>Southern Luzon State University Catanauan Extension</h1>
+    <h2>Online Document Request System</h2>
+    <p>Accessible, Convenient, and Hassle-Free Document Requests</p>
+  </div>
+
+  <div class="student-home-grid">
+    <article class="student-home-card">
+      <div class="student-home-card-title">
+        <i class="fa-solid fa-file-lines"></i>
+        <h3>Request a Document</h3>
+      </div>
+      <p>Submit your request. Choose a document type and track its status.</p>
+      <a href="{{ url_for('student_dashboard') }}" class="student-home-btn">
+        <i class="fa-solid fa-file-circle-plus"></i>
+        Request a Document
+      </a>
+    </article>
+
+    <article class="student-home-card">
+      <div class="student-home-card-title">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <h3>Track Your Request</h3>
+      </div>
+      <p>Check the status of your requests using your reference number.</p>
+      <a href="{{ url_for('student_progress') }}" class="student-home-btn">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        Track Request
+      </a>
+    </article>
+  </div>
+</section>
+{% endblock %}

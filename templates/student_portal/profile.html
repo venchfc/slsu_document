@@ -1,0 +1,207 @@
+{% extends "public/base.html" %}
+
+{% block title %}Student Profile - SLSU{% endblock %}
+
+{% block content %}
+<section class="student-dashboard-wrap student-profile-wrap">
+    <div class="student-dashboard-head">
+        <h1>Student Profile</h1>
+        <p>Complete your profile details before requesting forms.</p>
+    </div>
+
+    <div class="student-profile-grid">
+        <article class="student-doc-card student-profile-form-card">
+            <div class="student-profile-headline">
+                <div class="student-profile-avatar-wrap">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Default profile picture" class="student-profile-avatar">
+                    
+                </div>
+                <div class="student-profile-headline-text">
+                    {% if profile_complete %}
+                    <p class="student-profile-complete-pill is-complete">Profile Complete</p>
+                    {% else %}
+                    <p class="student-profile-complete-pill is-pending">Profile Incomplete</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <h2>Full Profile</h2>
+            <p class="student-slot-note">Review your account information and update the required details below.</p>
+
+            <div class="student-profile-body-grid">
+                <section class="student-profile-summary-panel">
+                    <div class="student-profile-summary-grid">
+                        <div class="student-profile-summary-item">
+                            <span class="student-profile-summary-label">Student ID</span>
+                            <p>{{ profile.student_id or 'N/A' }}</p>
+                        </div>
+                        <div class="student-profile-summary-item">
+                            <span class="student-profile-summary-label">Email</span>
+                            <p>{{ profile.email }}</p>
+                        </div>
+                        <div class="student-profile-summary-item">
+                            <span class="student-profile-summary-label">First Name</span>
+                            <p>{{ profile.first_name or 'N/A' }}</p>
+                        </div>
+                        <div class="student-profile-summary-item">
+                            <span class="student-profile-summary-label">Middle Name</span>
+                            <p>{{ profile.middle_name or 'N/A' }}</p>
+                        </div>
+                        <div class="student-profile-summary-item">
+                            <span class="student-profile-summary-label">Last Name</span>
+                            <p>{{ profile.last_name or 'N/A' }}</p>
+                        </div>
+                        <div class="student-profile-summary-item">
+                            <span class="student-profile-summary-label">Suffix</span>
+                            <p>{{ profile.suffix or 'N/A' }}</p>
+                        </div>
+                        <div class="student-profile-summary-item">
+                            <span class="student-profile-summary-label">Year Graduated</span>
+                            <p>{{ profile.year_graduated or 'N/A' }}</p>
+                        </div>
+                        <div class="student-profile-summary-item">
+                            <span class="student-profile-summary-label">Address</span>
+                            <p>{{ profile.address or 'N/A' }}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="student-profile-edit-panel">
+                    <h3 class="student-profile-update-title">Profile Update</h3>
+                    <p class="student-slot-note">Use the update button to add or edit profile details in a secure modal form.</p>
+                    <div class="student-profile-actions">
+                        <button type="button" id="openStudentProfileModal" class="student-slot-btn">Update Profile</button>
+                        <a href="{{ url_for('student_change_password') }}" class="student-track-btn">Change Password</a>
+                        <a href="{{ url_for('student_dashboard') }}" class="student-track-btn">Back to Dashboard</a>
+                    </div>
+                </section>
+            </div>
+        </article>
+    </div>
+
+    <div class="student-modal" id="studentProfileModal" hidden>
+        <div class="student-modal-backdrop" data-close-profile-modal></div>
+        <div class="student-modal-card student-profile-modal-card" role="dialog" aria-modal="true" aria-labelledby="studentProfileModalTitle">
+            <div class="student-modal-head">
+                <h3 id="studentProfileModalTitle">Update Profile Details</h3>
+                <button type="button" class="student-modal-close" aria-label="Close" data-close-profile-modal>&times;</button>
+            </div>
+            <div class="student-modal-body student-profile-modal-body">
+                <form method="post" action="{{ url_for('student_profile') }}" class="student-profile-form" novalidate>
+                    <div class="student-profile-form-grid">
+                        <div class="student-profile-field">
+                            <label for="graduated_program" class="student-profile-label">Program Graduated <span aria-hidden="true">*</span></label>
+                            <input
+                                id="graduated_program"
+                                name="graduated_program"
+                                type="text"
+                                class="student-profile-input{% if form_errors.get('graduated_program') %} is-invalid{% endif %}"
+                                value="{{ form.graduated_program.data or '' }}"
+                                placeholder="Example: BS Information Technology"
+                                maxlength="150"
+                                required
+                            >
+                            {% if form_errors.get('graduated_program') %}
+                            <p class="student-profile-error">{{ form_errors.get('graduated_program') }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="student-profile-field">
+                            <label for="major" class="student-profile-label">Major (Optional)</label>
+                            <input
+                                id="major"
+                                name="major"
+                                type="text"
+                                class="student-profile-input{% if form_errors.get('major') %} is-invalid{% endif %}"
+                                value="{{ form.major.data or '' }}"
+                                placeholder="Example: Software Engineering"
+                                maxlength="120"
+                            >
+                            {% if form_errors.get('major') %}
+                            <p class="student-profile-error">{{ form_errors.get('major') }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="student-profile-field">
+                            <label for="year_graduated" class="student-profile-label">Year Graduated <span aria-hidden="true">*</span></label>
+                            <input
+                                id="year_graduated"
+                                name="year_graduated"
+                                type="text"
+                                class="student-profile-input{% if form_errors.get('year_graduated') %} is-invalid{% endif %}"
+                                value="{{ form.year_graduated.data or '' }}"
+                                placeholder="Example: 2024"
+                                maxlength="4"
+                                required
+                            >
+                            {% if form_errors.get('year_graduated') %}
+                            <p class="student-profile-error">{{ form_errors.get('year_graduated') }}</p>
+                            {% endif %}
+                        </div>
+
+                        <div class="student-profile-field student-profile-field-full">
+                            <label for="address" class="student-profile-label">Address <span aria-hidden="true">*</span></label>
+                            <input
+                                id="address"
+                                name="address"
+                                type="text"
+                                class="student-profile-input{% if form_errors.get('address') %} is-invalid{% endif %}"
+                                value="{{ form.address.data or '' }}"
+                                placeholder="House number, street, barangay, city"
+                                maxlength="255"
+                                required
+                            >
+                            {% if form_errors.get('address') %}
+                            <p class="student-profile-error">{{ form_errors.get('address') }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="student-profile-actions">
+                        <button type="submit" class="student-slot-btn">Save Profile</button>
+                        <button type="button" class="student-track-btn" data-close-profile-modal>Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const modal = document.getElementById('studentProfileModal');
+        const openBtn = document.getElementById('openStudentProfileModal');
+        if (!modal || !openBtn) {
+            return;
+        }
+
+        const openModal = () => {
+            modal.hidden = false;
+            document.body.style.overflow = 'hidden';
+        };
+
+        const closeModal = () => {
+            modal.hidden = true;
+            document.body.style.overflow = '';
+        };
+
+        openBtn.addEventListener('click', openModal);
+        document.querySelectorAll('[data-close-profile-modal]').forEach((el) => {
+            el.addEventListener('click', closeModal);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && !modal.hidden) {
+                closeModal();
+            }
+        });
+
+        const hasFormErrors = {{ 'true' if form_errors else 'false' }};
+        if (hasFormErrors) {
+            openModal();
+        }
+    })();
+</script>
+{% endblock %}

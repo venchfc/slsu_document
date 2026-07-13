@@ -1,0 +1,115 @@
+{% extends "public/base.html" %}
+
+{% block title %}Login - SLSU Catanauan Extension{% endblock %}
+
+{% block content %}
+<section class="login-section">
+  <div class="login-grid">
+    <div class="login-visual">
+      <div class="login-visual-inner">
+        <p class="auth-kicker">Student Portal</p>
+        <h2>Welcome Back</h2>
+        <p class="muted">Sign in to manage and track your document requests securely.</p>
+        <ul class="auth-features">
+          <li>Check document status anytime</li>
+          <li>Secure access to your student profile</li>
+          <li>Fast request tracking in one place</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="login-card">
+      <h3 class="login-card-title">Sign in to your account</h3>
+      <form method="post" action="{{ url_for('login') }}" class="login-form" id="loginForm" novalidate>
+        <label class="form-label" for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="form-input{% if errors and errors.get('email') %} is-invalid{% endif %}"
+          placeholder="you@example.edu"
+          value="{{ form_data.email if form_data else '' }}"
+          autocomplete="email"
+          aria-invalid="{{ 'true' if errors and errors.get('email') else 'false' }}"
+          required
+        >
+        {% if errors and errors.get('email') %}
+          <p class="field-error" role="alert">{{ errors.get('email') }}</p>
+        {% endif %}
+
+        <label class="form-label" for="password">Password</label>
+        <div class="input-wrap">
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="form-input{% if errors and errors.get('password') %} is-invalid{% endif %}"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            aria-invalid="{{ 'true' if errors and errors.get('password') else 'false' }}"
+            required
+          >
+          <button type="button" class="password-toggle" id="passwordToggle" aria-label="Show password" aria-pressed="false">
+            <i class="fa-regular fa-eye"></i>
+          </button>
+        </div>
+        {% if errors and errors.get('password') %}
+          <p class="field-error" role="alert">{{ errors.get('password') }}</p>
+        {% endif %}
+
+        <div class="login-row">
+          <label class="remember">
+            <input type="checkbox" name="remember"> Remember me
+          </label>
+          <a href="{{ url_for('forgot_password') }}" class="forgot-link">Forgot password?</a>
+        </div>
+
+        <div class="auth-actions">
+          <button class="cta-button login-submit" id="loginSubmit" type="submit">
+            <span class="login-submit-text">Sign In</span>
+          </button>
+          <a href="{{ url_for('register') }}" class="secondary-link">Create account</a>
+        </div>
+      </form>
+
+      <p class="security-note"><i class="fa-solid fa-lock"></i> Your credentials are encrypted and securely processed.</p>
+
+      <div class="login-help">
+        <p class="muted">Need help? Contact <a href="mailto:slsu.edu.ph@gmail.com">slsu.edu.ph@gmail.com</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% block extra_js %}
+<script>
+  const passwordInput = document.getElementById('password');
+  const passwordToggle = document.getElementById('passwordToggle');
+  const loginForm = document.getElementById('loginForm');
+  const loginSubmit = document.getElementById('loginSubmit');
+
+  if (passwordInput && passwordToggle) {
+    passwordToggle.addEventListener('click', function () {
+      const isHidden = passwordInput.type === 'password';
+      passwordInput.type = isHidden ? 'text' : 'password';
+      passwordToggle.setAttribute('aria-pressed', isHidden ? 'true' : 'false');
+      passwordToggle.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+      passwordToggle.innerHTML = isHidden
+        ? '<i class="fa-regular fa-eye-slash"></i>'
+        : '<i class="fa-regular fa-eye"></i>';
+    });
+  }
+
+  if (loginForm && loginSubmit) {
+    loginForm.addEventListener('submit', function () {
+      loginSubmit.disabled = true;
+      loginSubmit.classList.add('is-loading');
+      const text = loginSubmit.querySelector('.login-submit-text');
+      if (text) {
+        text.textContent = 'Signing in...';
+      }
+    });
+  }
+</script>
+{% endblock %}
+{% endblock %}

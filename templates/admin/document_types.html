@@ -1,0 +1,238 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Document Types - SLSU{% endblock %}
+
+{% block admin_content %}
+<section class="dashboard-wrap">
+    <h2>Document Types</h2>
+
+    <section class="recent-card document-list-card">
+        <div class="doc-card-header">
+            <h3>Available Documents</h3>
+            <button type="button" class="doc-btn doc-btn-secondary" id="openAddDocumentModal">+ Add Document</button>
+        </div>
+        <p class="doc-subtitle">These document options are available for student requests.</p>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Category</th>
+                        <th>Document Name</th>
+                        <th>Price</th>
+                        <th>Description</th>
+                        <th>Rules</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in document_types %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ doc.category or 'Certification' }}</td>
+                        <td>{{ doc.name }}</td>
+                        <td>PHP {{ '%.2f'|format(doc.price or 0) }}</td>
+                        <td>{{ doc.description or 'N/A' }}</td>
+                        <td>
+                            {% if doc.single_request_only or doc.is_ctc_service %}
+                            <div class="doc-rule-stack">
+                                {% if doc.single_request_only %}<span class="doc-rule-chip">Single request only</span>{% endif %}
+                                {% if doc.is_ctc_service %}<span class="doc-rule-chip">CTC service option</span>{% endif %}
+                            </div>
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if doc.is_active %}
+                                <span class="status-pill status-approved">Active</span>
+                            {% else %}
+                                <span class="status-pill status-rejected">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button
+                                type="button"
+                                class="action-link action-link-btn open-edit-document"
+                                data-edit-url="{{ url_for('admin_document_types_edit', document_type_id=doc.id) }}"
+                                data-category="{{ (doc.category or 'Certification')|e }}"
+                                data-name="{{ doc.name|e }}"
+                                data-price="{{ '%.2f'|format(doc.price or 0) }}"
+                                data-description="{{ (doc.description or '')|e }}"
+                                data-is-active="{{ '1' if doc.is_active else '0' }}"
+                                data-single-request-only="{{ '1' if doc.single_request_only else '0' }}"
+                                data-is-ctc-service="{{ '1' if doc.is_ctc_service else '0' }}"
+                            >
+                                Edit
+                            </button>
+                            <span aria-hidden="true"> | </span>
+                            <form method="post" action="{{ url_for('admin_document_types_delete', document_type_id=doc.id) }}" style="display:inline;">
+                                <button
+                                    type="submit"
+                                    class="action-link action-link-btn"
+                                    onclick="return confirm('Delete this document type? This cannot be undone.');"
+                                >
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8">No document types found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="admin-modal-backdrop {% if form_errors %}is-open{% endif %}" id="documentTypeModal" aria-hidden="{% if form_errors %}false{% else %}true{% endif %}">
+        <div class="admin-modal-panel" role="dialog" aria-modal="true" aria-labelledby="documentTypeModalTitle">
+            <div class="admin-modal-header">
+                <h3 id="documentTypeModalTitle">{% if edit_doc %}Edit Document Type{% else %}Add Document Type{% endif %}</h3>
+                <button type="button" class="admin-modal-close" id="closeDocumentTypeModal" aria-label="Close document form modal">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <p class="doc-subtitle" id="documentTypeModalSubtitle">{% if edit_doc %}Update selected document details and pricing.{% else %}Create a new requestable document and set its price.{% endif %}</p>
+
+            <form method="post" action="{% if edit_doc %}{{ url_for('admin_document_types_edit', document_type_id=edit_doc.id) }}{% else %}{{ url_for('admin_document_types_add') }}{% endif %}" class="doc-type-form" id="documentTypeForm" novalidate>
+                <label for="modal-category">Category</label>
+                <select id="modal-category" name="category" class="admin-input{% if form_errors and form_errors.get('category') %} is-invalid{% endif %}" required>
+                    <option value="Certification" {% if form and form.category.data == 'Certification' %}selected{% endif %}>Certification</option>
+                    <option value="Credentials/record" {% if form and form.category.data == 'Credentials/record' %}selected{% endif %}>Credentials/record</option>
+                    <option value="Authentication" {% if form and form.category.data == 'Authentication' %}selected{% endif %}>Authentication</option>
+                </select>
+                {% if form_errors and form_errors.get('category') %}<p class="form-error">{{ form_errors.get('category') }}</p>{% endif %}
+
+                <label for="modal-name">Document Name</label>
+                <input id="modal-name" name="name" type="text" value="{{ form.name.data if form and form.name.data is not none else '' }}" class="admin-input{% if form_errors and form_errors.get('name') %} is-invalid{% endif %}" required>
+                {% if form_errors and form_errors.get('name') %}<p class="form-error">{{ form_errors.get('name') }}</p>{% endif %}
+
+                <label for="modal-price">Price (PHP)</label>
+                <input id="modal-price" name="price" type="number" step="0.01" min="0" value="{{ form.price.data if form and form.price.data is not none else '0.00' }}" class="admin-input{% if form_errors and form_errors.get('price') %} is-invalid{% endif %}" required>
+                {% if form_errors and form_errors.get('price') %}<p class="form-error">{{ form_errors.get('price') }}</p>{% endif %}
+
+                <label for="modal-description">Description</label>
+                <textarea id="modal-description" name="description" rows="3" class="admin-input{% if form_errors and form_errors.get('description') %} is-invalid{% endif %}">{{ form.description.data if form and form.description.data is not none else '' }}</textarea>
+                {% if form_errors and form_errors.get('description') %}<p class="form-error">{{ form_errors.get('description') }}</p>{% endif %}
+
+                <label class="admin-checkbox">
+                    <input id="modal-is-active" name="is_active" type="checkbox" {% if form and form.is_active.data %}checked{% endif %}>
+                    Active and visible to students
+                </label>
+
+                <label class="admin-checkbox">
+                    <input id="modal-single-request-only" name="single_request_only" type="checkbox" {% if form and form.single_request_only.data %}checked{% endif %}>
+                    Single request only (cannot be combined with other documents)
+                </label>
+
+                <label class="admin-checkbox">
+                    <input id="modal-is-ctc-service" name="is_ctc_service" type="checkbox" {% if form and form.is_ctc_service.data %}checked{% endif %}>
+                    CTC service (only available for CTC requests, not shown in regular document list)
+                </label>
+
+                <div class="doc-form-actions">
+                    <button class="doc-btn" type="submit" id="documentTypeSubmitBtn">{% if edit_doc %}Update Document{% else %}Add Document{% endif %}</button>
+                    <button class="action-link action-link-btn" type="button" id="cancelDocumentTypeModal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const modal = document.getElementById('documentTypeModal');
+        const openBtn = document.getElementById('openAddDocumentModal');
+        const closeBtn = document.getElementById('closeDocumentTypeModal');
+        const cancelBtn = document.getElementById('cancelDocumentTypeModal');
+        const form = document.getElementById('documentTypeForm');
+        const title = document.getElementById('documentTypeModalTitle');
+        const subtitle = document.getElementById('documentTypeModalSubtitle');
+        const submitBtn = document.getElementById('documentTypeSubmitBtn');
+        const editButtons = document.querySelectorAll('.open-edit-document');
+        const inputCategory = document.getElementById('modal-category');
+        const inputName = document.getElementById('modal-name');
+        const inputPrice = document.getElementById('modal-price');
+        const inputDescription = document.getElementById('modal-description');
+        const inputActive = document.getElementById('modal-is-active');
+        const inputSingleRequestOnly = document.getElementById('modal-single-request-only');
+        const inputIsCtcService = document.getElementById('modal-is-ctc-service');
+        const addAction = "{{ url_for('admin_document_types_add') }}";
+        const openWithErrors = {{ 'true' if form_errors else 'false' }};
+        if (!modal) return;
+
+        const openModal = () => {
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+        };
+
+        const closeModal = () => {
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+        };
+
+        const setAddMode = () => {
+            if (!form) return;
+            form.action = addAction;
+            if (title) title.textContent = 'Add Document Type';
+            if (subtitle) subtitle.textContent = 'Create a new requestable document and set its price.';
+            if (submitBtn) submitBtn.textContent = 'Add Document';
+            if (inputCategory) inputCategory.value = 'Certification';
+            if (inputName) inputName.value = '';
+            if (inputPrice) inputPrice.value = '0.00';
+            if (inputDescription) inputDescription.value = '';
+            if (inputActive) inputActive.checked = true;
+            if (inputSingleRequestOnly) inputSingleRequestOnly.checked = false;
+            if (inputIsCtcService) inputIsCtcService.checked = false;
+        };
+
+        const setEditMode = (btn) => {
+            if (!form) return;
+            form.action = btn.getAttribute('data-edit-url') || addAction;
+            if (title) title.textContent = 'Edit Document Type';
+            if (subtitle) subtitle.textContent = 'Update selected document details and pricing.';
+            if (submitBtn) submitBtn.textContent = 'Update Document';
+            if (inputCategory) inputCategory.value = btn.getAttribute('data-category') || 'Certification';
+            if (inputName) inputName.value = btn.getAttribute('data-name') || '';
+            if (inputPrice) inputPrice.value = btn.getAttribute('data-price') || '0.00';
+            if (inputDescription) inputDescription.value = btn.getAttribute('data-description') || '';
+            if (inputActive) inputActive.checked = btn.getAttribute('data-is-active') === '1';
+            if (inputSingleRequestOnly) inputSingleRequestOnly.checked = btn.getAttribute('data-single-request-only') === '1';
+            if (inputIsCtcService) inputIsCtcService.checked = btn.getAttribute('data-is-ctc-service') === '1';
+        };
+
+        if (openBtn) openBtn.addEventListener('click', () => {
+            setAddMode();
+            openModal();
+        });
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+        editButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                setEditMode(btn);
+                openModal();
+            });
+        });
+
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        if (openWithErrors || modal.classList.contains('is-open')) {
+            document.body.classList.add('modal-open');
+        }
+    })();
+</script>
+{% endblock %}

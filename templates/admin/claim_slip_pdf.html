@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Claim Slip</title>
+    <style>
+{{ inline_css|safe }}
+    </style>
+</head>
+<body>
+{% set data = form_data or {} %}
+{% set cert_items = data.certification_items if data.certification_items is defined else [] %}
+{% set cred_items = data.credentials_records_items if data.credentials_records_items is defined else [] %}
+{% set auth_items = data.authentication_items if data.authentication_items is defined else [] %}
+{% set req_options = data.claim_requirement_options if data.claim_requirement_options is defined and data.claim_requirement_options else [
+    {'key': 'documentary_stamp', 'label': 'Documentary Stamp', 'column': 1, 'is_checked': false},
+    {'key': 'school_id_valid_id', 'label': 'School ID / Any Valid ID', 'column': 1, 'is_checked': false},
+    {'key': 'psa_nso_or_affidavit', 'label': 'Original PSA/NSO, Marriage Certificate Affidavit or', 'column': 1, 'is_checked': false},
+    {'key': 'form_137', 'label': 'Form 137', 'column': 1, 'is_checked': false},
+    {'key': 'photo_2x2', 'label': '2x2 Picture w/ Nametag (RECENT PHOTO)', 'column': 1, 'is_checked': false},
+    {'key': 'transfer_credentials', 'label': 'Transfer Credentials (from previous school of attendance)', 'column': 1, 'is_checked': false},
+    {'key': 'police_clearance', 'label': 'Police Clearance', 'column': 2, 'is_checked': false},
+    {'key': 'medical_good_moral', 'label': 'Medical/Good Moral Certificate', 'column': 2, 'is_checked': false}
+] %}
+{% set req_col1 = req_options | selectattr('column', 'equalto', 1) | list %}
+{% set req_col2 = req_options | selectattr('column', 'equalto', 2) | list %}
+{% set cert_mid = ((cert_items|length + 1) // 2) %}
+<section class="dashboard-wrap">
+    <div class="claim-slip-wrap">
+        <section class="claim-slip-sheet" aria-label="Claim slip form">
+            <header class="claim-head">
+                <div class="claim-brand">
+                    <img src="{{ logo_src }}" alt="SLSU Seal" class="claim-logo">
+                    <div class="claim-brand-text">
+                        <p class="line-small">REPUBLIC OF THE PHILIPPINES</p>
+                        <p class="line-big">SOUTHERN LUZON STATE UNIVERSITY</p>
+                        <p class="line-mid">OFFICE OF THE UNIVERSITY REGISTRAR</p>
+                        <p class="line-small">QUEZON AVENUE BRGY. KULAPI LUCBAN, QUEZON</p>
+                        <p class="line-small">(042) 540-4763   slsuregistrar@slsu.edu.ph</p>
+                    </div>
+                </div>
+                <div class="claim-title-block">
+                    <h1>CLAIM<br>SLIP</h1>
+                </div>
+            </header>
+
+            <div class="claim-slip-body">
+                <section class="claim-meta-row">
+                    <div class="claim-student-row">
+                        <div class="claim-field"><span>NAME OF STUDENT:</span><span class="fill-value"><u><strong>{{ data.student_full_name or '' }}</strong></u></span></div>
+                        <div class="claim-field"><span>PROGRAM/COURSE:</span><span class="fill-value"><u><strong>{{ data.program_course or '' }}</strong></u></span></div>
+                        <div class="claim-field"><span>DATE OF REQUEST:</span><span class="fill-value"><u><strong>{{ data.date_of_request or '' }}</strong></u></span></div>
+                    </div>
+                    <div class="claim-date-box">
+                        <p>CLAIM DATE:</p>
+                        <div class="claim-date-line"><strong>{{ data.claim_date or '' }}</strong></div>
+                    </div>
+                </section>
+
+                <section class="claim-mid-grid">
+                    <article class="claim-panel">
+                        <h3>IMPORTANT:</h3>
+                        <p>RECORDS WILL BE RELEASED ONLY TO:</p>
+                        <ol>
+                            <li>The Owner/Student - upon presentation of his/her original SLSU Student ID Card and the Claim Slip</li>
+                            <li>An Authorized Representative - the representative must present:</li>
+                        </ol>
+                        <ul>
+                            <li>A signed Authorization Letter from the Owner/Student</li>
+                            <li>A copy of the Owner/Student's valid ID</li>
+                            <li>The representative's own valid ID</li>
+                        </ul>
+                    </article>
+
+                    <article class="claim-panel">
+                        <h3>PLEASE BRING THE FOLLOWING UPON CLAIMING REQUESTED DOCS:</h3>
+                        <div class="claim-doc-grid">
+                            <ul class="claim-requirement-list">
+                                {% for item in req_col1 %}
+                                <li>
+                                    <span class="req-box {% if item.is_checked %}is-checked{% endif %}"></span>
+                                    <span>{{ item.label }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <ul class="claim-requirement-list">
+                                {% for item in req_col2 %}
+                                <li>
+                                    <span class="req-box {% if item.is_checked %}is-checked{% endif %}"></span>
+                                    <span>{{ item.label }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </article>
+                </section>
+
+                <section class="claim-request-grid">
+                    <div class="claim-request-col">
+                        <p class="claim-request-head"><span class="box {% if data.check_certification %}is-checked{% endif %}"></span> CERTIFICATION</p>
+                        <div class="claim-list-two-col">
+                            <ul>
+                                {% for item in cert_items[:cert_mid] %}
+                                <li class="{% if item.is_requested %}is-requested{% endif %}">
+                                    <span class="item-name">{{ item.name|upper }}</span>
+                                    {% if item.is_requested and ((item.price or 0)|float) > 0 %}
+                                    <span class="item-price">Price: {{ '%.2f'|format((item.price or 0)|float) }}</span>
+                                    {% endif %}
+                                </li>
+                                {% else %}
+                                <li><span class="item-name">-</span></li>
+                                {% endfor %}
+                            </ul>
+                            <ul>
+                                {% for item in cert_items[cert_mid:] %}
+                                <li class="{% if item.is_requested %}is-requested{% endif %}">
+                                    <span class="item-name">{{ item.name|upper }}</span>
+                                    {% if item.is_requested and ((item.price or 0)|float) > 0 %}
+                                    <span class="item-price">Price: {{ '%.2f'|format((item.price or 0)|float) }}</span>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="claim-request-col">
+                        <p class="claim-request-head"><span class="box {% if data.check_credentials_records %}is-checked{% endif %}"></span> CREDENTIALS/RECORDS:</p>
+                        <ul>
+                            {% for item in cred_items %}
+                            <li class="{% if item.is_requested %}is-requested{% endif %}">
+                                <span class="item-name">{{ item.name|upper }}</span>
+                                {% if item.is_requested and ((item.price or 0)|float) > 0 %}
+                                <span class="item-price">Price: {{ '%.2f'|format((item.price or 0)|float) }}</span>
+                                {% endif %}
+                            </li>
+                            {% else %}
+                            <li><span class="item-name">-</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="claim-request-col">
+                        <p class="claim-request-head"><span class="box {% if data.check_authentication %}is-checked{% endif %}"></span> AUTHENTICATION</p>
+                        <ul>
+                            {% for item in auth_items %}
+                            <li class="{% if item.is_requested %}is-requested{% endif %}">
+                                <span class="item-name">{{ item.name|upper }}</span>
+                                {% if item.is_requested and ((item.price or 0)|float) > 0 %}
+                                <span class="item-price">Php.: {{ '%.2f'|format((item.price or 0)|float) }}</span>
+                                {% endif %}
+                            </li>
+                            {% else %}
+                            <li><span class="item-name">-</span></li>
+                            {% endfor %}
+                        </ul>
+                        <p class="claim-others"><span class="box"></span> OTHERS (Specify): <span class="line"></span></p>
+                    </div>
+                </section>
+
+                <section class="claim-disclaimer">
+                    <h4>DISCLAIMER</h4>
+                    <p>
+                        The processing and release of student records are subject to university policies and standard verification procedures.
+                        The office reserves the right to withhold the release of documents in cases of incomplete requirements,
+                        unsettled accounts, or discrepancies found during evaluation. The student is responsible for ensuring the
+                        accuracy of the information provided.
+                    </p>
+                </section>
+            </div>
+
+            <footer class="claim-foot">
+                <span>AA-REG-2.01F1, REV.3</span>
+                <span>{{ data.reference_code or 'DRN-____-____' }}</span>
+            </footer>
+        </section>
+    </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,197 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Archive - SLSU{% endblock %}
+
+{% block admin_content %}
+<section class="dashboard-wrap request-page">
+    <h2>Archive</h2>
+
+    <form method="get" action="{{ url_for('admin_archive') }}" class="request-filter-row">
+        <div class="request-filter-group">
+            <label>Scope:</label>
+            <span class="role-chip">Claimed and Rejected Requests</span>
+        </div>
+
+        <div class="request-search-group">
+            <input type="text" name="q" value="{{ search }}" class="admin-input request-search-input" placeholder="Search student, number, document...">
+            <button type="submit" class="doc-btn doc-btn-secondary">Search</button>
+        </div>
+    </form>
+
+    <section class="recent-card request-card">
+        <h3>Archived Requests</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Reference Code</th>
+                        <th>Student No.</th>
+                        <th>Student Name</th>
+                        <th>Document Type</th>
+                        <th>Date Requested</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in requests_rows %}
+                    <tr>
+                        <td>{{ row.reference_code or 'N/A' }}</td>
+                        <td>{{ row.student_id or 'N/A' }}</td>
+                        <td>{{ row.student_name }}</td>
+                        <td>{{ row.document_type or 'N/A' }}</td>
+                        <td>{{ row.date_requested }}</td>
+                        <td><span class="status-pill status-{{ row.status }}">{{ row.status|replace('_', ' ')|title }}</span></td>
+                        <td>
+                            <button
+                                type="button"
+                                class="doc-btn doc-btn-secondary request-open-detail-modal"
+                                data-booking-id="{{ row.booking_id }}"
+                                data-reference-code="{{ row.reference_code or 'N/A' }}"
+                                data-student-id="{{ row.student_id or 'N/A' }}"
+                                data-student-name="{{ row.student_name }}"
+                                data-document-type="{{ row.document_type or 'N/A' }}"
+                                data-date-requested="{{ row.date_requested }}"
+                                data-status="{{ row.status|replace('_', ' ')|title }}"
+                                data-purpose="{{ row.purpose or 'N/A' }}"
+                                data-rejection-message="{{ row.rejection_message or '' }}"
+                            >Details</button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7">No archived requests found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="request-modal" id="archiveDetailsModal" hidden>
+        <div class="request-modal-backdrop" data-close-request-modal></div>
+        <div class="request-modal-card" role="dialog" aria-modal="true" aria-labelledby="archiveDetailsTitle">
+            <div class="request-modal-head">
+                <h3 id="archiveDetailsTitle">Archived Request Details</h3>
+                <button type="button" class="request-modal-close" aria-label="Close" data-close-request-modal>&times;</button>
+            </div>
+            <div class="request-modal-form request-details-body">
+                <div class="archive-detail-banner">
+                    <p class="archive-detail-banner-label">Reference</p>
+                    <p class="archive-detail-banner-value"><span id="detail-reference-code">-</span></p>
+                    <p class="archive-detail-banner-label">Request Code</p>
+                    <p class="archive-detail-banner-value">BK-<span id="detail-booking-id">-</span></p>
+                </div>
+
+                <div class="archive-details-grid">
+                    <article class="archive-detail-card">
+                        <h4>Student</h4>
+                        <p><strong>Student No.:</strong> <span id="detail-student-id">-</span></p>
+                        <p><strong>Name:</strong> <span id="detail-student-name">-</span></p>
+                    </article>
+
+                    <article class="archive-detail-card">
+                        <h4>Request</h4>
+                        <p><strong>Document:</strong> <span id="detail-document-type">-</span></p>
+                        <p><strong>Date Requested:</strong> <span id="detail-date-requested">-</span></p>
+                        <p><strong>Status:</strong> <span id="detail-status" class="archive-status-text">-</span></p>
+                    </article>
+
+                    <article class="archive-detail-card archive-detail-card-full">
+                        <h4>Purpose</h4>
+                        <p id="detail-purpose">-</p>
+                    </article>
+
+                    <article class="archive-detail-card archive-detail-card-full">
+                        <h4>Rejection Message</h4>
+                        <p id="detail-rejection-message">N/A</p>
+                    </article>
+
+                    <article class="archive-detail-card archive-detail-card-full">
+                        <h4>Forms</h4>
+                        <div class="request-form-toolbar-actions">
+                            <a
+                                id="detail-view-form-link"
+                                class="doc-btn doc-btn-secondary"
+                                href="#"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >View Request Form</a>
+                            <a
+                                id="detail-view-claim-slip-link"
+                                class="doc-btn doc-btn-secondary"
+                                href="#"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >View Claim Slip</a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        const modal = document.getElementById('archiveDetailsModal');
+        const detailBookingId = document.getElementById('detail-booking-id');
+        const detailReferenceCode = document.getElementById('detail-reference-code');
+        const detailStudentId = document.getElementById('detail-student-id');
+        const detailStudentName = document.getElementById('detail-student-name');
+        const detailDocumentType = document.getElementById('detail-document-type');
+        const detailDateRequested = document.getElementById('detail-date-requested');
+        const detailStatus = document.getElementById('detail-status');
+        const detailPurpose = document.getElementById('detail-purpose');
+        const detailRejectionMessage = document.getElementById('detail-rejection-message');
+        const detailViewFormLink = document.getElementById('detail-view-form-link');
+        const detailViewClaimSlipLink = document.getElementById('detail-view-claim-slip-link');
+        const formUrlTemplate = "{{ url_for('admin_archive_request_form', booking_id=0) }}";
+        const claimSlipUrlTemplate = "{{ url_for('admin_archive_claim_slip', booking_id=0) }}";
+
+        const openModal = (button) => {
+            const statusText = String(button.getAttribute('data-status') || '').trim().toLowerCase();
+            const bookingId = button.getAttribute('data-booking-id') || '0';
+            detailBookingId.textContent = bookingId || 'N/A';
+            detailReferenceCode.textContent = button.getAttribute('data-reference-code') || 'N/A';
+            detailStudentId.textContent = button.getAttribute('data-student-id') || 'N/A';
+            detailStudentName.textContent = button.getAttribute('data-student-name') || 'N/A';
+            detailDocumentType.textContent = button.getAttribute('data-document-type') || 'N/A';
+            detailDateRequested.textContent = button.getAttribute('data-date-requested') || 'N/A';
+            detailStatus.textContent = button.getAttribute('data-status') || 'N/A';
+            detailPurpose.textContent = button.getAttribute('data-purpose') || 'N/A';
+            detailRejectionMessage.textContent = button.getAttribute('data-rejection-message') || 'N/A';
+            if (detailViewFormLink) {
+                detailViewFormLink.href = formUrlTemplate.replace('/0/request-form', '/' + encodeURIComponent(bookingId) + '/request-form');
+            }
+            if (detailViewClaimSlipLink) {
+                detailViewClaimSlipLink.href = claimSlipUrlTemplate.replace('/0/claim-slip', '/' + encodeURIComponent(bookingId) + '/claim-slip');
+                detailViewClaimSlipLink.hidden = statusText === 'rejected';
+            }
+            modal.hidden = false;
+            document.body.style.overflow = 'hidden';
+        };
+
+        const closeModal = () => {
+            modal.hidden = true;
+            document.body.style.overflow = '';
+        };
+
+        document.querySelectorAll('.request-open-detail-modal').forEach((button) => {
+            button.addEventListener('click', () => openModal(button));
+        });
+
+        document.querySelectorAll('[data-close-request-modal]').forEach((el) => {
+            el.addEventListener('click', closeModal);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && modal && !modal.hidden) {
+                closeModal();
+            }
+        });
+    })();
+</script>
+{% endblock %}

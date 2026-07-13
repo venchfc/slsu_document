@@ -1,0 +1,74 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard - SLSU{% endblock %}
+
+{% block admin_content %}
+<section class="dashboard-wrap">
+    <h2>Dashboard</h2>
+
+    <div class="stat-grid">
+        <article class="stat-card">
+            <span class="stat-card-icon" aria-hidden="true"><i class="fa-solid fa-file-circle-check"></i></span>
+            <div class="stat-card-content">
+                <p>Total Requests</p>
+                <strong>{{ dashboard.cards.total }}</strong>
+            </div>
+        </article>
+        <article class="stat-card">
+            <span class="stat-card-icon" aria-hidden="true"><i class="fa-regular fa-circle-check"></i></span>
+            <div class="stat-card-content">
+                <p>Approved</p>
+                <strong>{{ dashboard.cards.approved }}</strong>
+            </div>
+        </article>
+        <article class="stat-card">
+            <span class="stat-card-icon" aria-hidden="true"><i class="fa-solid fa-hourglass-half"></i></span>
+            <div class="stat-card-content">
+                <p>Pending</p>
+                <strong>{{ dashboard.cards.pending }}</strong>
+            </div>
+        </article>
+        <article class="stat-card">
+            <span class="stat-card-icon" aria-hidden="true"><i class="fa-regular fa-circle-xmark"></i></span>
+            <div class="stat-card-content">
+                <p>Rejected</p>
+                <strong>{{ dashboard.cards.rejected }}</strong>
+            </div>
+        </article>
+    </div>
+
+    <section class="recent-card">
+        <h3>Recent Request</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Request Code</th>
+                        <th>Reference Code</th>
+                        <th>Student Name</th>
+                        <th>Document Type</th>
+                        <th>Date Requested</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in dashboard.recent_requests %}
+                    <tr>
+                        <td>{{ row.request_code }}</td>
+                        <td>{{ row.reference_code or 'N/A' }}</td>
+                        <td>{{ row.student_name }}</td>
+                        <td>{{ row.document_type }}</td>
+                        <td>{{ row.requested_at }}</td>
+                        <td><span class="status-pill status-{{ row.status }}">{{ row.status|replace('_', ' ')|title }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6">No requests yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</section>
+{% endblock %}
