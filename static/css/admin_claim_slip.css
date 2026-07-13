@@ -494,13 +494,15 @@
 @media print {
     @page {
         size: A4 landscape;
-        margin: 4mm;
+        margin: 5mm;
     }
 
     html,
     body {
         margin: 0;
         padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     .admin-sidebar,
@@ -531,9 +533,126 @@
         margin: 0 auto;
         page-break-inside: avoid;
         break-inside: avoid;
+        padding: 8px 8px 7px;
+        overflow: hidden;
     }
 
     .claim-slip-body {
         min-height: 0;
+        gap: 6px;
+    }
+
+    .claim-head {
+        gap: 6px;
+        align-items: flex-start;
+    }
+
+    .claim-brand {
+        gap: 6px;
+        min-width: 0;
+    }
+
+    .claim-logo {
+        width: 44px;
+        height: 44px;
+    }
+
+    .claim-brand-text .line-big {
+        font-size: 12px;
+        letter-spacing: 0.35px;
+    }
+
+    .claim-brand-text .line-mid {
+        font-size: 8px;
+        letter-spacing: 0.2px;
+    }
+
+    .claim-brand-text .line-small {
+        font-size: 7px;
+        letter-spacing: 0.15px;
+    }
+
+    .claim-title-block {
+        min-width: 150px;
+    }
+
+    .claim-title-block h1 {
+        font-size: 42px;
+        line-height: 0.84;
+    }
+
+    .claim-date-box p {
+        font-size: 18px;
+    }
+
+    .claim-date-line {
+        min-height: 30px;
+        font-size: 14px;
+        padding: 0 6px;
+    }
+
+    .claim-meta-row {
+        grid-template-columns: minmax(0, 1fr) 185px;
+        gap: 6px;
+        padding-top: 4px;
+    }
+
+    .claim-field {
+        font-size: 8px;
+        line-height: 1.15;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .fill-value {
+        display: block;
+        max-width: 100%;
+    }
+
+    .claim-mid-grid {
+        gap: 6px;
+    }
+
+    .claim-request-grid {
+        gap: 6px;
+    }
+
+    .claim-panel {
+        padding: 6px 7px;
+    }
+
+    .claim-panel h3,
+    .claim-request-head {
+        font-size: 9px;
+    }
+
+    .claim-panel p,
+    .claim-panel li,
+    .claim-request-col li,
+    .claim-disclaimer p {
+        font-size: 8px;
+        line-height: 1.15;
+    }
+
+    .claim-doc-grid,
+    .claim-list-two-col {
+        gap: 6px;
+    }
+
+    .claim-request-col li {
+        padding-left: 16px;
+        gap: 4px;
+    }
+
+    .claim-others {
+        font-size: 9px;
+    }
+
+    .claim-disclaimer {
+        padding: 3px 5px;
+    }
+
+    .claim-foot {
+        font-size: 8px;
     }
 }
