@@ -416,6 +416,218 @@
     }
 }
 
+@media (max-width: 640px) {
+    .request-form-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.7rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .request-form-toolbar h2 {
+        font-size: 1.65rem;
+        line-height: 1.1;
+    }
+
+    .request-form-toolbar-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.45rem;
+    }
+
+    .request-form-toolbar-actions .doc-btn,
+    .request-form-toolbar-actions .doc-btn-secondary {
+        width: 100%;
+        text-align: center;
+    }
+
+    .sample-wrap {
+        padding: 10px 10px 14px;
+    }
+
+    .form-page {
+        padding: 8px;
+    }
+
+    .form-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .form-head-left {
+        gap: 8px;
+        align-items: center;
+    }
+
+    .form-seal {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+    }
+
+    .form-head-text .line-1 {
+        font-size: 10px;
+        letter-spacing: 0.2px;
+    }
+
+    .form-head-text .line-2 {
+        font-size: 15px;
+        line-height: 1.05;
+        letter-spacing: 0.25px;
+    }
+
+    .form-head-text .line-3,
+    .form-head-text .line-4 {
+        font-size: 8px;
+        letter-spacing: 0.15px;
+    }
+
+    .form-title {
+        text-align: left;
+        font-size: 32px;
+        line-height: 0.95;
+    }
+
+    .rule-zig {
+        margin: 8px 0 10px;
+    }
+
+    .intro .intro-head,
+    .intro .intro-sub,
+    .fill-head,
+    .name-note {
+        font-size: 10px;
+    }
+
+    .request-top,
+    .grid-two,
+    .edu-grid,
+    .bottom-grid,
+    .reg-grid,
+    .request-form-toolbar-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .request-top,
+    .grid-two,
+    .edu-grid,
+    .bottom-grid,
+    .reg-grid {
+        gap: 8px;
+    }
+
+    .request-col {
+        font-size: 9px;
+    }
+
+    .request-col-head {
+        font-size: 10px;
+        gap: 4px;
+    }
+
+    .check {
+        width: 13px;
+        height: 13px;
+        border-width: 1.5px;
+    }
+
+    .item-line {
+        font-size: 8.3px;
+        letter-spacing: 0.15px;
+    }
+
+    .date-line {
+        font-size: 11px;
+        margin-top: 0;
+    }
+
+    .field-row {
+        font-size: 9px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .field-row .line {
+        min-height: 12px;
+    }
+
+    .name-grid {
+        height: auto;
+        min-height: 48px;
+        grid-template-columns: 1fr;
+    }
+
+    .name-grid > div {
+        border-right: 0;
+        border-bottom: 2px solid #222;
+    }
+
+    .name-grid > div:last-child {
+        border-bottom: 0;
+    }
+
+    .name-labels {
+        grid-template-columns: 1fr;
+        gap: 0.2rem;
+        font-size: 9px;
+        text-align: left;
+    }
+
+    .degree-row {
+        gap: 6px;
+        font-size: 9px;
+    }
+
+    .phone-grid {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .phone-grid > span {
+        display: none;
+    }
+
+    .phone-boxes {
+        height: 24px;
+    }
+
+    .privacy-box {
+        font-size: 9px;
+        line-height: 1.2;
+    }
+
+    .sign-grid,
+    .reg-title,
+    .form-foot-note,
+    .reg-foot,
+    .reg-box .row,
+    .reg-box .label {
+        font-size: 8.5px;
+    }
+
+    .sign-row {
+        font-size: 9px;
+        gap: 6px;
+    }
+
+    .reg-box .row {
+        grid-template-columns: 84px 1fr;
+        min-height: 24px;
+    }
+
+    .reg-box .label {
+        padding: 5px;
+    }
+
+    .reg-foot {
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+}
+
 @media print {
     .admin-sidebar,
     .admin-topbar,

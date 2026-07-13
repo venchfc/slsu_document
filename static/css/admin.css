@@ -928,6 +928,9 @@ tbody td {
     border: 1px solid #d1e0da;
     border-radius: 14px;
     box-shadow: 0 18px 40px rgba(5, 54, 41, 0.24);
+    max-height: calc(100vh - 2rem);
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
 }
 
@@ -955,9 +958,11 @@ tbody td {
 }
 
 .request-modal-form {
+    flex: 1 1 auto;
     display: grid;
     gap: 0.8rem;
     padding: 1.1rem 1.15rem 1.2rem;
+    overflow-y: auto;
 }
 
 .request-modal-form label {
@@ -1128,7 +1133,53 @@ tbody td {
     }
 
     .admin-topbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
         margin-bottom: 0.9rem;
+    }
+
+    .topbar-spacer {
+        display: none;
+    }
+
+    .topbar-actions {
+        width: 100%;
+        margin-left: 0;
+        display: flex;
+        flex-direction: row-reverse;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .admin-notif-wrap {
+        width: auto;
+        display: inline-flex;
+        align-self: auto;
+    }
+
+    .admin-notif-bell {
+        width: 40px;
+        min-width: 40px;
+        padding: 0;
+    }
+
+    .admin-notif-panel {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        left: auto;
+        width: min(320px, calc(100vw - 1rem));
+        max-width: min(320px, calc(100vw - 1rem));
+        max-height: min(60vh, 480px);
+        margin-top: 0;
+    }
+
+    .topbar-actions .role-chip,
+    .topbar-actions .top-link {
+        align-self: auto;
     }
 
     .stat-grid {
@@ -1225,10 +1276,5 @@ tbody td {
 
     .role-chip {
         padding: 0.32rem 0.62rem;
-    }
-
-    .admin-notif-panel {
-        right: 0;
-        width: min(360px, calc(100vw - 1rem));
     }
 }
