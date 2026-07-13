@@ -529,22 +529,29 @@
         border: 1px solid #353535;
         width: 100%;
         max-width: 100%;
-        min-height: 0;
+        min-height: 200mm;
         margin: 0 auto;
         page-break-inside: avoid;
         break-inside: avoid;
-        padding: 8px 8px 7px;
-        overflow: hidden;
+        padding: 7px 7px 6px;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
     }
 
     .claim-slip-body {
         min-height: 0;
-        gap: 6px;
+        gap: 5px;
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
 
     .claim-head {
         gap: 6px;
         align-items: flex-start;
+        display: flex;
     }
 
     .claim-brand {
@@ -558,47 +565,47 @@
     }
 
     .claim-brand-text .line-big {
-        font-size: 12px;
-        letter-spacing: 0.35px;
+        font-size: 14px;
+        letter-spacing: 0.45px;
     }
 
     .claim-brand-text .line-mid {
+        font-size: 9px;
+        letter-spacing: 0.28px;
+    }
+
+    .claim-brand-text .line-small {
         font-size: 8px;
         letter-spacing: 0.2px;
     }
 
-    .claim-brand-text .line-small {
-        font-size: 7px;
-        letter-spacing: 0.15px;
-    }
-
     .claim-title-block {
-        min-width: 150px;
+        min-width: 170px;
     }
 
     .claim-title-block h1 {
-        font-size: 42px;
-        line-height: 0.84;
+        font-size: 50px;
+        line-height: 0.82;
     }
 
     .claim-date-box p {
-        font-size: 18px;
+        font-size: 22px;
     }
 
     .claim-date-line {
-        min-height: 30px;
-        font-size: 14px;
+        min-height: 34px;
+        font-size: 15px;
         padding: 0 6px;
     }
 
     .claim-meta-row {
-        grid-template-columns: minmax(0, 1fr) 185px;
-        gap: 6px;
+        grid-template-columns: minmax(0, 1fr) 210px;
+        gap: 8px;
         padding-top: 4px;
     }
 
     .claim-field {
-        font-size: 8px;
+        font-size: 9px;
         line-height: 1.15;
         flex-wrap: wrap;
         align-items: flex-start;
@@ -611,32 +618,49 @@
 
     .claim-mid-grid {
         gap: 6px;
+        display: grid;
+        grid-template-columns: 0.95fr 1.15fr;
+        margin-top: 1px;
     }
 
     .claim-request-grid {
-        gap: 6px;
+        gap: 7px;
+        display: grid;
+        grid-template-columns: 1fr 1fr 0.9fr;
+        margin-top: 0;
     }
 
     .claim-panel {
         padding: 6px 7px;
+        margin-bottom: 0;
     }
 
     .claim-panel h3,
     .claim-request-head {
-        font-size: 9px;
+        font-size: 10px;
     }
 
     .claim-panel p,
     .claim-panel li,
     .claim-request-col li,
     .claim-disclaimer p {
-        font-size: 8px;
+        font-size: 8.5px;
         line-height: 1.15;
     }
 
     .claim-doc-grid,
     .claim-list-two-col {
         gap: 6px;
+        display: grid;
+    }
+
+    .claim-doc-grid > ul,
+    .claim-list-two-col > ul {
+        margin-bottom: 4px;
+    }
+
+    .claim-request-col {
+        margin-bottom: 6px;
     }
 
     .claim-request-col li {
