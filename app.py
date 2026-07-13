@@ -239,6 +239,18 @@ def _build_claim_slip_pdf_bytes(form_data: dict) -> bytes:
         pass
 
     # Fallback renderer for environments where Chromium is unavailable.
+    # Prefer WeasyPrint over xhtml2pdf because it handles flex/grid layout much better.
+    try:
+        import importlib
+
+        weasyprint_module = importlib.import_module('weasyprint')
+        html_class = getattr(weasyprint_module, 'HTML', None)
+        if html_class is None:
+            raise RuntimeError('PDF renderer is unavailable. Install the "weasyprint" package first.')
+        return html_class(string=pdf_html, base_url=request.url_root).write_pdf()
+    except Exception:
+        pass
+
     try:
         import io
         from xhtml2pdf import pisa
@@ -251,120 +263,111 @@ def _build_claim_slip_pdf_bytes(form_data: dict) -> bytes:
         pass
 
     try:
-        import importlib
+        import io
+        from reportlab.lib.pagesizes import landscape, A4
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import mm
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+        from reportlab.lib import colors
 
-        weasyprint_module = importlib.import_module('weasyprint')
-        html_class = getattr(weasyprint_module, 'HTML', None)
-        if html_class is None:
-            raise RuntimeError('PDF renderer is unavailable. Install the "weasyprint" package first.')
-        return html_class(string=pdf_html, base_url=request.url_root).write_pdf()
-    except Exception as exc:  # pragma: no cover - environment-specific dependency load
-        try:
-            import io
-            from reportlab.lib.pagesizes import landscape, A4
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.lib.units import mm
-            from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-            from reportlab.lib import colors
+        output = io.BytesIO()
+        doc = SimpleDocTemplate(
+            output,
+            pagesize=landscape(A4),
+            leftMargin=8 * mm,
+            rightMargin=8 * mm,
+            topMargin=8 * mm,
+            bottomMargin=8 * mm,
+        )
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'ClaimSlipTitle',
+            parent=styles['Title'],
+            fontName='Helvetica-Bold',
+            fontSize=18,
+            leading=22,
+            textColor=colors.HexColor('#0a4336'),
+            spaceAfter=8,
+        )
+        header_style = ParagraphStyle(
+            'ClaimSlipHeader',
+            parent=styles['Heading2'],
+            fontName='Helvetica-Bold',
+            fontSize=11,
+            leading=13,
+            spaceAfter=4,
+            textColor=colors.black,
+        )
+        body_style = ParagraphStyle(
+            'ClaimSlipBody',
+            parent=styles['BodyText'],
+            fontName='Helvetica',
+            fontSize=9,
+            leading=11,
+            spaceAfter=2,
+        )
+        small_style = ParagraphStyle(
+            'ClaimSlipSmall',
+            parent=styles['BodyText'],
+            fontName='Helvetica',
+            fontSize=8,
+            leading=10,
+            spaceAfter=2,
+        )
 
-            output = io.BytesIO()
-            doc = SimpleDocTemplate(
-                output,
-                pagesize=landscape(A4),
-                leftMargin=8 * mm,
-                rightMargin=8 * mm,
-                topMargin=8 * mm,
-                bottomMargin=8 * mm,
-            )
-            styles = getSampleStyleSheet()
-            title_style = ParagraphStyle(
-                'ClaimSlipTitle',
-                parent=styles['Title'],
-                fontName='Helvetica-Bold',
-                fontSize=18,
-                leading=22,
-                textColor=colors.HexColor('#0a4336'),
-                spaceAfter=8,
-            )
-            header_style = ParagraphStyle(
-                'ClaimSlipHeader',
-                parent=styles['Heading2'],
-                fontName='Helvetica-Bold',
-                fontSize=11,
-                leading=13,
-                spaceAfter=4,
-                textColor=colors.black,
-            )
-            body_style = ParagraphStyle(
-                'ClaimSlipBody',
-                parent=styles['BodyText'],
-                fontName='Helvetica',
-                fontSize=9,
-                leading=11,
-                spaceAfter=2,
-            )
-            small_style = ParagraphStyle(
-                'ClaimSlipSmall',
-                parent=styles['BodyText'],
-                fontName='Helvetica',
-                fontSize=8,
-                leading=10,
-                spaceAfter=2,
-            )
+        full_name = str(form_data.get('student_full_name') or '').strip() or 'Student'
+        program_course = str(form_data.get('program_course') or '').strip() or 'N/A'
+        date_of_request = str(form_data.get('date_of_request') or '').strip() or 'N/A'
+        claim_date = str(form_data.get('claim_date') or '').strip() or 'N/A'
+        reference_code = str(form_data.get('reference_code') or '').strip() or 'DRN'
 
-            full_name = str(form_data.get('student_full_name') or '').strip() or 'Student'
-            program_course = str(form_data.get('program_course') or '').strip() or 'N/A'
-            date_of_request = str(form_data.get('date_of_request') or '').strip() or 'N/A'
-            claim_date = str(form_data.get('claim_date') or '').strip() or 'N/A'
-            reference_code = str(form_data.get('reference_code') or '').strip() or 'DRN'
+        elements = [
+            Paragraph('CLAIM SLIP', title_style),
+            Paragraph(f'<b>Reference No:</b> {reference_code}', body_style),
+            Paragraph(f'<b>Name of Student:</b> {full_name}', body_style),
+            Paragraph(f'<b>Program/Course:</b> {program_course}', body_style),
+            Paragraph(f'<b>Date of Request:</b> {date_of_request}', body_style),
+            Paragraph(f'<b>Claim Date:</b> {claim_date}', body_style),
+            Spacer(1, 4),
+            Paragraph('Requirements To Bring', header_style),
+        ]
 
-            elements = [
-                Paragraph('CLAIM SLIP', title_style),
-                Paragraph(f'<b>Reference No:</b> {reference_code}', body_style),
-                Paragraph(f'<b>Name of Student:</b> {full_name}', body_style),
-                Paragraph(f'<b>Program/Course:</b> {program_course}', body_style),
-                Paragraph(f'<b>Date of Request:</b> {date_of_request}', body_style),
-                Paragraph(f'<b>Claim Date:</b> {claim_date}', body_style),
-                Spacer(1, 4),
-                Paragraph('Requirements To Bring', header_style),
-            ]
+        requirement_rows = []
+        for key, label in [
+            ('documentary_stamp', 'Documentary Stamp (1 stamp per document)'),
+            ('school_id_valid_id', 'School ID / Any Valid ID'),
+            ('psa_nso_or_affidavit', 'Original PSA/NSO, Marriage Certificate Affidavit or'),
+            ('form_137', 'Form 137'),
+            ('photo_2x2', '2x2 Picture w/ Nametag (RECENT PHOTO)'),
+            ('transfer_credentials', 'Transfer Credentials (from previous school of attendance)'),
+            ('police_clearance', 'Police Clearance'),
+            ('medical_good_moral', 'Medical/Good Moral Certificate'),
+        ]:
+            checked = 'Yes' if key in (form_data.get('claim_requirements') or []) else 'No'
+            requirement_rows.append([Paragraph(label, small_style), Paragraph(checked, small_style)])
 
-            requirement_rows = []
-            for key, label in [
-                ('documentary_stamp', 'Documentary Stamp (1 stamp per document)'),
-                ('school_id_valid_id', 'School ID / Any Valid ID'),
-                ('psa_nso_or_affidavit', 'Original PSA/NSO, Marriage Certificate Affidavit or'),
-                ('form_137', 'Form 137'),
-                ('photo_2x2', '2x2 Picture w/ Nametag (RECENT PHOTO)'),
-                ('transfer_credentials', 'Transfer Credentials (from previous school of attendance)'),
-                ('police_clearance', 'Police Clearance'),
-                ('medical_good_moral', 'Medical/Good Moral Certificate'),
-            ]:
-                checked = 'Yes' if key in (form_data.get('claim_requirements') or []) else 'No'
-                requirement_rows.append([Paragraph(label, small_style), Paragraph(checked, small_style)])
+        if requirement_rows:
+            req_table = Table(requirement_rows, colWidths=[145 * mm, 20 * mm])
+            req_table.setStyle(TableStyle([
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#c7d7d1')),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f8f6')),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 4),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 4),
+                ('TOPPADDING', (0, 0), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ]))
+            elements.append(req_table)
 
-            if requirement_rows:
-                req_table = Table(requirement_rows, colWidths=[145 * mm, 20 * mm])
-                req_table.setStyle(TableStyle([
-                    ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#c7d7d1')),
-                    ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#f3f8f6')),
-                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                    ('LEFTPADDING', (0, 0), (-1, -1), 4),
-                    ('RIGHTPADDING', (0, 0), (-1, -1), 4),
-                    ('TOPPADDING', (0, 0), (-1, -1), 3),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-                ]))
-                elements.append(req_table)
+        elements.extend([
+            Spacer(1, 6),
+            Paragraph('This claim slip is generated from the request record. Please bring it together with the required supporting documents when claiming your request.', small_style),
+        ])
 
-            elements.extend([
-                Spacer(1, 6),
-                Paragraph('This claim slip is generated from the request record. Please bring it together with the required supporting documents when claiming your request.', small_style),
-            ])
-
-            doc.build(elements)
-            return output.getvalue()
-        except Exception:
-            raise RuntimeError('PDF renderer is unavailable. Install Playwright (with Chromium), xhtml2pdf, WeasyPrint, or use the built-in ReportLab fallback.') from exc
+        doc.build(elements)
+        return output.getvalue()
+    except Exception:
+        raise RuntimeError('PDF renderer is unavailable. Install Playwright (with Chromium), WeasyPrint, xhtml2pdf, or use the built-in ReportLab fallback.')
 
 
 @app.before_request
